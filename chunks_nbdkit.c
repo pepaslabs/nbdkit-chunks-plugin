@@ -1,4 +1,4 @@
-/* nbdkit-chunks-plugin
+/* chunks_nbdkit.c
  * See https://github.com/pepaslabs/nbdkit-chunks-plugin
  * Copyright (C) 2015 Jason Pepas.
  * Released under the terms of the MIT license.  See https://opensource.org/licenses/MIT
@@ -13,6 +13,8 @@
 #include <stdint.h> // uint8_t, etc.
 #include <stdbool.h> // bool
 #include <stdio.h> // fopen(), etc.
+
+#include "chunks_math.h"
 
 
 #define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS
@@ -87,20 +89,9 @@ int chunks_config(const char *key, const char *value)
     }
 }
 
-bool is_divisible_by(uint64_t x, uint64_t y)
-{
-    return x % y == 0;
-}
-
 bool metadata_dev_size_is_sane()
 {
     return is_divisible_by(metadata.v1.dev_size, metadata.v1.chunk_size);
-}
-
-bool is_power_of_two(uint64_t x)
-{
-    // thanks to http://stackoverflow.com/a/600306
-    return (x & (x - 1)) == 0;
 }
 
 bool metadata_chunk_size_is_sane()
