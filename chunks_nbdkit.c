@@ -22,6 +22,15 @@ char *chunks_dir_path = NULL;
 metadata_t metadata;
 
 
+struct _chunks_handle_t
+{
+
+};
+typedef struct _chunks_handle_t chunks_handle_t;
+
+chunks_handle_t handle;
+
+
 int chunks_config(const char *key, const char *value)
 {
     if (strcmp(key, "dir") == 0)
@@ -58,13 +67,34 @@ int chunks_config_complete()
     return 0;
 }
 
+void* chunks_open(int readonly)
+{
+    return (void*)(&handle);
+}
+
+void chunks_close(void *handle)
+{
+    ;
+}
+
+int64_t chunks_get_size(void *handle)
+{
+    return (int64_t)(metadata.v1.dev_size);
+}
+
 static struct nbdkit_plugin plugin = {
   .name              = "chunks",
   .longname          = "nbdkit chunks plugin",
   .description       = "An nbdkit plugin which stores data in many small files, rather than one large backing file.",
   .version           = "0.0",
+
   .config            = chunks_config,
-  .config_complete   = chunks_config_complete
+  .config_complete   = chunks_config_complete,
+
+  .open              = chunks_open,
+  .close             = chunks_close,
+  
+  .get_size          = chunks_get_size
 };
 
 NBDKIT_REGISTER_PLUGIN(plugin)
