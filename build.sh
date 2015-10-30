@@ -4,7 +4,7 @@ set -e
 
 name=chunks
 
-for i in ${name}_nbdkit ${name}_math
+for i in ${name}_nbdkit ${name}_math ${name}_metadata
 do
     gcc -g -O2 -std=gnu99 -fPIC -DPIC \
         -DHAVE_CONFIG_H -I. -I../.. -I../../include \
