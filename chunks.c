@@ -10,10 +10,14 @@
 #include <nbdkit-plugin.h>
 
 #include <string.h> // strcmp()
-#include <stdint.h>
+#include <stdint.h> // uint8_t, etc
+#include <stdbool.h> // bool
 
 
 #define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS
+
+
+static char *dir = NULL;
 
 
 // Metadata about this block device (version 0).
@@ -74,8 +78,47 @@ int chunks_config(const char *key, const char *value)
     }
 }
 
+bool dir_sanity_dir_exists()
+{
+    // FIXME implement this
+    nbdkit_error("dir '%s' does not exist.", dir);
+    return false;
+}
+
+bool dir_sanity_dir_is_dir_or_symlink_to_dir()
+{
+    // FIXME implement this
+    nbdkit_error("'%s' is not a directory (or symlink to a directory).", dir);
+    return false;
+}
+
+bool dir_sanity_metadata_file_exists()
+{
+    // FIXME implement this
+    nbdkit_error("'%s/metadata' does not exist.", dir);
+    return false;
+}
+
+bool perform_dir_sanity_checks()
+{
+    return dir_sanity_dir_exists() \
+    && dir_sanity_dir_is_dir_or_symlink_to_dir() \
+    && dir_sanity_metadata_file_exists();
+}
+
 int chunks_config_complete()
 {
+    if (dir == NULL)
+    {
+        nbdkit_error("'dir' is a required parameter");
+        return -1;
+    }
+
+    if (!perform_dir_sanity_checks())
+    {
+        return -1;
+    }
+
     return 0;
 }
 
