@@ -23,11 +23,11 @@
 // is supported.
 struct _metadata_v0_t
 {
-	// a value which specifically identifies this as a "chunks" metadata file.
-	uint8_t magic;
+    // a value which specifically identifies this as a "chunks" metadata file.
+    uint8_t magic;
 
-	// format version number of this metadata structure.
-	uint8_t metadata_version;
+    // format version number of this metadata structure.
+    uint8_t metadata_version;
 };
 typedef struct _metadata_v0_t metadata_v0_t;
 
@@ -36,17 +36,17 @@ typedef struct _metadata_v0_t metadata_v0_t;
 // metadata about this block device (version 1).
 struct _metadata_v1_t
 {
-	// a value which specifically identifies this as a "chunks" metadata file.
-	uint8_t magic;
+    // a value which specifically identifies this as a "chunks" metadata file.
+    uint8_t magic;
 
-	// format version number of this metadata structure.
-	uint8_t metadata_version;
+    // format version number of this metadata structure.
+    uint8_t metadata_version;
 
-	// size of the block device in bytes.  should be divisible by chunk_size.
-	uint64_t dev_size;
+    // size of the block device in bytes.  should be divisible by chunk_size.
+    uint64_t dev_size;
 
-	// size of each chunk in bytes.  must be a power of 2.
-	uint64_t chunk_size;
+    // size of each chunk in bytes.  must be a power of 2.
+    uint64_t chunk_size;
 };
 typedef struct _metadata_v1_t metadata_v1_t;
 
@@ -56,27 +56,27 @@ typedef struct _metadata_v1_t metadata_v1_t;
 
 int chunks_config(const char *key, const char *value)
 {
-	if (strcmp(key, "dir") == 0)
-	{
-		char *chunks_dir = nbdkit_absolute_path(value);
-		if (chunks_dir == NULL)
-		{
-			nbdkit_error("nbdkit_absolute_path() failed on dir '%s'", value);
-			return -1;
-		}
+    if (strcmp(key, "dir") == 0)
+    {
+        char *chunks_dir = nbdkit_absolute_path(value);
+        if (chunks_dir == NULL)
+        {
+            nbdkit_error("nbdkit_absolute_path() failed on dir '%s'", value);
+            return -1;
+        }
 
-		return 0;
-	}
-	else
-	{
-		nbdkit_error("Unrecognized parameter: '%s'", key);
-		return -1;
-	}
+        return 0;
+    }
+    else
+    {
+        nbdkit_error("Unrecognized parameter: '%s'", key);
+        return -1;
+    }
 }
 
 int chunks_config_complete()
 {
-	return 0;
+    return 0;
 }
 
 static struct nbdkit_plugin plugin = {
