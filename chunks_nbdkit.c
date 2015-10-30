@@ -31,6 +31,9 @@ typedef struct _chunks_handle_t chunks_handle_t;
 chunks_handle_t handle;
 
 
+#define chunks_config_help "dir: absolute path to the directory where the metadata and chunks are stored."
+
+
 int chunks_config(const char *key, const char *value)
 {
     if (strcmp(key, "dir") == 0)
@@ -90,10 +93,11 @@ static struct nbdkit_plugin plugin = {
 
   .config            = chunks_config,
   .config_complete   = chunks_config_complete,
+  .config_help       = chunks_config_help,
 
   .open              = chunks_open,
   .close             = chunks_close,
-  
+
   .get_size          = chunks_get_size
 };
 
