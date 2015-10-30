@@ -2,7 +2,7 @@
 
 set -e
 
-name=$(basename *.c .c)
+name=chunks
 
 sudo cp nbdkit-${name}-plugin.so /usr/lib/x86_64-linux-gnu/nbdkit/plugins/
 sudo chown root:root /usr/lib/x86_64-linux-gnu/nbdkit/plugins/nbdkit-${name}-plugin.so

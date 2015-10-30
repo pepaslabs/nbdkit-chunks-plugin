@@ -2,24 +2,17 @@
 
 set -e
 
-name=$(basename *.c .c)
+name=chunks
 
-gcc \
--std=gnu99 \
--DHAVE_CONFIG_H \
--I. -I../.. -I../../include \
--g -O2 \
--c ${name}.c \
--fPIC \
--DPIC \
--o nbdkit-${name}-plugin.o
+for i in chunks_nbdkit
+do
+    gcc -g -O2 -std=gnu99 -fPIC -DPIC \
+        -DHAVE_CONFIG_H -I. -I../.. -I../../include \
+        -o ${i}.o -c ${i}.c
+done
 
-gcc \
--shared \
--fPIC \
--DPIC \
-nbdkit-${name}-plugin.o \
--O2 \
+gcc -shared -O2 -fPIC -DPIC \
 -Wl,-soname \
 -Wl,nbdkit-${name}-plugin.so \
--o nbdkit-${name}-plugin.so
+-o nbdkit-${name}-plugin.so \
+chunks_nbdkit.o \
