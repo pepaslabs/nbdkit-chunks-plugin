@@ -4,20 +4,18 @@
  * Released under the terms of the MIT license.  See https://opensource.org/licenses/MIT
  */
 
-// see https://github.com/libguestfs/nbdkit/blob/master/docs/nbdkit-plugin.pod
+// see also https://github.com/libguestfs/nbdkit/blob/master/docs/nbdkit-plugin.pod
 
 #include <config.h>
 #include <nbdkit-plugin.h>
 
-#include <string.h> // strcmp()
-#include <stdint.h> // uint8_t, etc
+#include <string.h> // strcmp(), strlen(), etc.
+#include <stdint.h> // uint8_t, etc.
 #include <stdbool.h> // bool
+#include <stdio.h> // fopen(), etc.
 
 
 #define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS
-
-
-static char *dir = NULL;
 
 
 // Metadata about this block device (version 0).
@@ -57,13 +55,24 @@ typedef struct _metadata_v1_t metadata_v1_t;
 #define CHUNKS_METADATA_MIN_SUPPORTED_VERSION 1
 #define CHUNKS_METADATA_MAX_SUPPORTED_VERSION 1
 
+union _metadata_t
+{
+    metadata_v0_t v0;
+    metadata_v1_t v1;
+};
+typedef union _metadata_t metadata_t;
+
+
+char *chunks_dir_path = NULL;
+metadata_t metadata;
+
 
 int chunks_config(const char *key, const char *value)
 {
     if (strcmp(key, "dir") == 0)
     {
-        char *chunks_dir = nbdkit_absolute_path(value);
-        if (chunks_dir == NULL)
+        chunks_dir_path = nbdkit_absolute_path(value);
+        if (chunks_dir_path == NULL)
         {
             nbdkit_error("nbdkit_absolute_path() failed on dir '%s'", value);
             return -1;
@@ -78,43 +87,113 @@ int chunks_config(const char *key, const char *value)
     }
 }
 
-bool dir_sanity_dir_exists()
+bool is_divisible_by(uint64_t x, uint64_t y)
 {
-    // FIXME implement this
-    nbdkit_error("dir '%s' does not exist.", dir);
-    return false;
+    return x % y == 0;
 }
 
-bool dir_sanity_dir_is_dir_or_symlink_to_dir()
+bool metadata_dev_size_is_sane()
 {
-    // FIXME implement this
-    nbdkit_error("'%s' is not a directory (or symlink to a directory).", dir);
-    return false;
+    return is_divisible_by(metadata.v1.dev_size, metadata.v1.chunk_size);
 }
 
-bool dir_sanity_metadata_file_exists()
+bool is_power_of_two(uint64_t x)
 {
-    // FIXME implement this
-    nbdkit_error("'%s/metadata' does not exist.", dir);
-    return false;
+    // thanks to http://stackoverflow.com/a/600306
+    return (x & (x - 1)) == 0;
 }
 
-bool perform_dir_sanity_checks()
+bool metadata_chunk_size_is_sane()
 {
-    return dir_sanity_dir_exists() \
-    && dir_sanity_dir_is_dir_or_symlink_to_dir() \
-    && dir_sanity_metadata_file_exists();
+    return is_power_of_two(metadata.v1.chunk_size);
+}
+
+int read_metadata()
+{
+    size_t buff_size = strlen(chunks_dir_path) + strlen("/metadata") + 1;
+    char metadata_path[buff_size];
+    snprintf(metadata_path, buff_size, "%s/metadata", chunks_dir_path);
+
+    FILE *fp = fopen(metadata_path, "r");
+    if (fp == NULL)
+    {
+        nbdkit_error("Unable to fopen '%s'", metadata_path);
+        return -1;
+    }
+
+    size_t bytes_read;
+
+    bytes_read = fread(&(metadata.v0.magic), sizeof(metadata.v0.magic), 1, fp);
+    if (bytes_read != sizeof(metadata.v0.magic))
+    {
+        nbdkit_error("Unable to fread '%s'", metadata_path);
+        return -1;
+    }
+
+    if (metadata.v0.magic != CHUNKS_METADATA_MAGIC)
+    {
+        nbdkit_error("Bad magic in '%s'", metadata_path);
+        return -1;
+    }
+
+    bytes_read = fread(&(metadata.v0.metadata_version), sizeof(metadata.v0.metadata_version), 1, fp);
+    if (bytes_read != sizeof(metadata.v0.metadata_version))
+    {
+        nbdkit_error("Unable to fread '%s'", metadata_path);
+        return -1;
+    }
+
+    if (metadata.v0.metadata_version < CHUNKS_METADATA_MIN_SUPPORTED_VERSION
+        || metadata.v0.metadata_version > CHUNKS_METADATA_MAX_SUPPORTED_VERSION)
+    {
+        nbdkit_error("Unsupported metadata version in '%s'", metadata_path);
+        return -1;
+    }
+
+    bytes_read = fread(&(metadata.v1.dev_size), sizeof(metadata.v1.dev_size), 1, fp);
+    if (bytes_read != sizeof(metadata.v1.dev_size))
+    {
+        nbdkit_error("Unable to fread '%s'", metadata_path);
+        return -1;
+    }
+
+    bytes_read = fread(&(metadata.v1.chunk_size), sizeof(metadata.v1.chunk_size), 1, fp);
+    if (bytes_read != sizeof(metadata.v1.chunk_size))
+    {
+        nbdkit_error("Unable to fread '%s'", metadata_path);
+        return -1;
+    }
+
+    if (!metadata_dev_size_is_sane())
+    {
+        nbdkit_error("Invalid dev_size in '%s'", metadata_path);
+        return -1;
+    }
+
+    if (!metadata_chunk_size_is_sane())
+    {
+        nbdkit_error("Invalid chunk_size in '%s'", metadata_path);
+        return -1;
+    }
+
+    if (fclose(fp) != 0)
+    {
+        nbdkit_error("Unable to fclose '%s'", metadata_path);
+        return -1;
+    }
+
+    return 0;
 }
 
 int chunks_config_complete()
 {
-    if (dir == NULL)
+    if (chunks_dir_path == NULL)
     {
         nbdkit_error("'dir' is a required parameter");
         return -1;
     }
 
-    if (!perform_dir_sanity_checks())
+    if (read_metadata() != 0)
     {
         return -1;
     }
