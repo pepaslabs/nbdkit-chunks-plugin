@@ -7,7 +7,7 @@
 #include <config.h>
 #include <nbdkit-plugin.h>
 
-#define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_REQUESTS
+#define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS
 
 static struct nbdkit_plugin plugin = {
   .name              = "chunks",
