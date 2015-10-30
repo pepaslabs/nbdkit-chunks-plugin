@@ -10,9 +10,34 @@
 #include <nbdkit-plugin.h>
 
 #include <string.h> // strcmp()
+#include <stdint.h>
 
 
 #define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS
+
+
+// metadata about this block device.
+struct _metadata_v0_t
+{
+	// format version number of this metadata structure.
+	uint8_t metadata_version;
+};
+typedef struct _metadata_v0_t metadata_v0_t;
+
+
+// metadata about this block device.
+struct _metadata_v1_t
+{
+	// format version number of this metadata structure.
+	uint8_t metadata_version;
+
+	// size of the block device in bytes.  should be divisible by chunk_size.
+	uint64_t dev_size;
+
+	// size of each chunk in bytes.  must be a power of 2.
+	uint64_t chunk_size;
+};
+typedef struct _metadata_v1_t metadata_v1_t;
 
 
 int chunks_config(const char *key, const char *value)
