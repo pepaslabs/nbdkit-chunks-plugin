@@ -35,7 +35,7 @@ struct _metadata_v1_t
     // format version number of this metadata structure.
     uint8_t metadata_version;
 
-    // size of the block device in bytes.  should be divisible by chunk_size.
+    // size of the block device in bytes.
     uint64_t dev_size;
 
     // size of each chunk in bytes.  must be a power of 2.

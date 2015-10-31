@@ -18,10 +18,13 @@
 #define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS
 
 
+// per block-device state:
 char *chunks_dir_path = NULL;
 metadata_t metadata;
+uint8_t chunk_shift;
 
 
+// per-connection state:
 struct _chunks_handle_t
 {
 
@@ -84,6 +87,10 @@ int64_t chunks_get_size(void *passed_handle)
 {
     return (int64_t)(metadata.v1.dev_size);
 }
+
+
+// --- can_write
+
 
 #include <stdio.h> // snprintf(), etc.
 #include <stdlib.h> // mkdtemp(), etc.
@@ -149,6 +156,20 @@ int chunks_can_write(void *passed_handle)
     return 0;
 }
 
+
+// --- pread
+
+
+int chunks_pread(void *passed_handle, void *buf, uint32_t count, uint64_t offset)
+{
+    // split the read up into chunks
+    // read each chunk
+
+    uint64_t first_chunk_number = offset << chunk_shift;
+    uint64_t first_chunk_offset = offset % metadata.v1.chunk_size;
+}
+
+
 static struct nbdkit_plugin plugin = {
   .name              = "chunks",
   .longname          = "nbdkit chunks plugin",
@@ -163,7 +184,9 @@ static struct nbdkit_plugin plugin = {
   .close             = chunks_close,
 
   .get_size          = chunks_get_size,
-  .can_write         = chunks_can_write
+  .can_write         = chunks_can_write,
+
+  .pread             = chunks_pread
 };
 
 NBDKIT_REGISTER_PLUGIN(plugin)

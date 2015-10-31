@@ -15,6 +15,7 @@
 
 extern char *chunks_dir_path;
 extern metadata_t metadata;
+extern uint8_t chunk_shift;
 
 
 bool _metadata_dev_size_is_sane()
@@ -25,6 +26,17 @@ bool _metadata_dev_size_is_sane()
 bool _metadata_chunk_size_is_sane()
 {
     return is_power_of_two(metadata.v1.chunk_size);
+}
+
+void _calculate_chunk_shift()
+{
+    chunk_shift = 0;
+    uint64_t chunk_size = metadata.v1.chunk_size;
+    while(chunk_size > 1)
+    {
+        chunk_size << 1;
+        chunk_shift++;
+    }
 }
 
 int read_metadata()
@@ -94,6 +106,8 @@ int read_metadata()
         nbdkit_error("Invalid chunk_size in '%s'", metadata_path);
         return -1;
     }
+
+    _calculate_chunk_shift();
 
     if (fclose(fp) != 0)
     {
