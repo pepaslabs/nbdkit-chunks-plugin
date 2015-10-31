@@ -57,6 +57,3 @@ typedef union _metadata_t metadata_t;
 
 
 int read_metadata();
-
-bool metadata_dev_size_is_sane();
-bool metadata_chunk_size_is_sane();

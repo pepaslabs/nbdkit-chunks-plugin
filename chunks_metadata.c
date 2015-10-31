@@ -8,7 +8,7 @@
 #include "chunks_math.h"
 
 #include <string.h> // strlen(), etc.
-#include <stdio.h> // fopen(), etc.
+#include <stdio.h> // fopen(), snprintf(), etc.
 
 #include <nbdkit-plugin.h> // nbdkit_error(), etc.
 
@@ -16,6 +16,16 @@
 extern char *chunks_dir_path;
 extern metadata_t metadata;
 
+
+bool _metadata_dev_size_is_sane()
+{
+    return is_divisible_by(metadata.v1.dev_size, metadata.v1.chunk_size);
+}
+
+bool _metadata_chunk_size_is_sane()
+{
+    return is_power_of_two(metadata.v1.chunk_size);
+}
 
 int read_metadata()
 {
@@ -73,13 +83,13 @@ int read_metadata()
         return -1;
     }
 
-    if (!metadata_dev_size_is_sane())
+    if (!_metadata_dev_size_is_sane())
     {
         nbdkit_error("Invalid dev_size in '%s'", metadata_path);
         return -1;
     }
 
-    if (!metadata_chunk_size_is_sane())
+    if (!_metadata_chunk_size_is_sane())
     {
         nbdkit_error("Invalid chunk_size in '%s'", metadata_path);
         return -1;
@@ -92,14 +102,4 @@ int read_metadata()
     }
 
     return 0;
-}
-
-bool metadata_dev_size_is_sane()
-{
-    return is_divisible_by(metadata.v1.dev_size, metadata.v1.chunk_size);
-}
-
-bool metadata_chunk_size_is_sane()
-{
-    return is_power_of_two(metadata.v1.chunk_size);
 }
