@@ -4,7 +4,7 @@ set -e
 
 for c in *.c
 do
-	o=$( basename "${c}" .c )
+    o=$( basename "${c}" .c )
     gcc -g -O2 -std=gnu99 -fPIC -DPIC \
         -DHAVE_CONFIG_H -I. -I../.. -I../../include \
         -o ${o}.o -c ${c}
