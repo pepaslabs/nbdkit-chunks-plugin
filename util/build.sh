@@ -2,11 +2,6 @@
 
 set -e -o pipefail
 
-if which gengetopt >/dev/null 2>&1
-then
-    cat cmdline.ggo | gengetopt
-fi
-
 for c in *.c
 do
     o=$( basename "${c}" .c )
