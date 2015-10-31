@@ -1,14 +1,9 @@
 #include <stdlib.h>
-#include "metadata_t.h"
-#include "cmdline.h"
+
+#include "args.h"
 
 int main(int argc, char *argv[])
 {
-	struct gengetopt_args_info args;
-	if (cmdline_parser(argc, argv, &args) != 0)
-	{
-    	return EXIT_FAILURE;
-	}
-
+    parse_args(argc, argv);
     return EXIT_FAILURE;
 }
