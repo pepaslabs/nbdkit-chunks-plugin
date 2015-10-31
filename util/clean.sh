@@ -2,4 +2,4 @@
 
 set -e
 
-rm -f mkbd.chunks
+rm -f *.o mkbd.chunks

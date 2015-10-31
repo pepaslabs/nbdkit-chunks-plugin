@@ -1,5 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
-set -e
+set -e -o pipefail
 
-gcc -std=gnu99 -I.. -o mkbd.chunks mkbd.chunks.c
+if which gengetopt >/dev/null 2>&1
+then
+    cat cmdline.ggo | gengetopt
+fi
+
+for c in *.c
+do
+    o=$( basename "${c}" .c )
+    gcc -std=gnu99 -I.. -o ${o}.o -c ${c}
+done
+
+gcc -std=gnu99 -o mkbd.chunks *.o
