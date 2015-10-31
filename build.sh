@@ -16,4 +16,4 @@ gcc -shared -O2 -fPIC -DPIC \
 -Wl,-soname \
 -Wl,nbdkit-${name}-plugin.so \
 -o nbdkit-${name}-plugin.so \
-*.o \
+*.o

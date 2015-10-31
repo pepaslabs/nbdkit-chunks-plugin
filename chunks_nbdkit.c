@@ -7,17 +7,14 @@
 // see also https://github.com/libguestfs/nbdkit/blob/master/docs/nbdkit-plugin.pod
 
 #include <config.h>
-#include <nbdkit-plugin.h>
+#include <nbdkit-plugin.h> // nbdkit_error(), etc.
 
 #include "chunks_dev_t.h"
 #include "chunks_handle_t.h"
-#include "chunks_metadata.h"
 
-#include "chunks_can_write.h"
 #include "chunks_config.h"
-
-#include <string.h> // strcmp(), etc.
-
+#include "chunks_can_write.h"
+#include "chunks_pread.h"
 
 
 #define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS
@@ -44,19 +41,6 @@ void chunks_close(void *passed_handle)
 int64_t chunks_get_size(void *passed_handle)
 {
     return (int64_t)(dev.dev_size);
-}
-
-
-// --- pread
-
-
-int chunks_pread(void *passed_handle, void *buf, uint32_t count, uint64_t offset)
-{
-    // split the read up into chunks
-    // read each chunk
-
-    uint64_t first_chunk_number = offset << dev.chunk_shift;
-    uint64_t first_chunk_offset = offset % dev.chunk_size;
 }
 
 

@@ -6,20 +6,12 @@
 
 // see also https://github.com/libguestfs/nbdkit/blob/master/docs/nbdkit-plugin.pod
 
-/*
-#include <config.h>
-#include <nbdkit-plugin.h>
-
-#include "chunks_dev_t.h"
-#include "chunks_handle_t.h"
-#include "chunks_metadata.h"
-
-#include "chunks_can_write.h"
-
-#include <string.h> // strcmp(), etc.
-*/
+#ifndef CHUNKS_CONFIG_H
+#define CHUNKS_CONFIG_H
 
 #define chunks_config_help "dir: absolute path to the directory where the metadata and chunks are stored."
 
 int chunks_config(const char *key, const char *value);
 int chunks_config_complete();
+
+#endif // CHUNKS_CONFIG_H
