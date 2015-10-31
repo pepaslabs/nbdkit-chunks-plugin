@@ -35,10 +35,75 @@ void _calculate_chunk_shift(metadata_t *metadata, chunks_dev_t *dev)
     }
 }
 
-int read_metadata_and_populate_chunks_dev(chunks_dev_t *dev)
+int _read_metadata_from_open_file_and_populate_chunks_dev(FILE *fp, char *filepath, chunks_dev_t *dev)
 {
     metadata_t metadata;
+    size_t bytes_read;
 
+    bytes_read = fread(&(metadata.v0.magic), sizeof(metadata.v0.magic), 1, fp);
+    if (bytes_read != sizeof(metadata.v0.magic))
+    {
+        nbdkit_error("Unable to fread '%s'", filepath);
+        return -1;
+    }
+
+    if (metadata.v0.magic != CHUNKS_METADATA_MAGIC)
+    {
+        nbdkit_error("Bad magic in '%s'", filepath);
+        return -1;
+    }
+
+    bytes_read = fread(&(metadata.v0.metadata_version), sizeof(metadata.v0.metadata_version), 1, fp);
+    if (bytes_read != sizeof(metadata.v0.metadata_version))
+    {
+        nbdkit_error("Unable to fread '%s'", filepath);
+        return -1;
+    }
+
+    if (metadata.v0.metadata_version < CHUNKS_METADATA_MIN_SUPPORTED_VERSION
+        || metadata.v0.metadata_version > CHUNKS_METADATA_MAX_SUPPORTED_VERSION)
+    {
+        nbdkit_error("Unsupported metadata version in '%s'", filepath);
+        return -1;
+    }
+
+    bytes_read = fread(&(metadata.v1.dev_size), sizeof(metadata.v1.dev_size), 1, fp);
+    if (bytes_read != sizeof(metadata.v1.dev_size))
+    {
+        nbdkit_error("Unable to fread '%s'", filepath);
+        return -1;
+    }
+
+    bytes_read = fread(&(metadata.v1.chunk_size), sizeof(metadata.v1.chunk_size), 1, fp);
+    if (bytes_read != sizeof(metadata.v1.chunk_size))
+    {
+        nbdkit_error("Unable to fread '%s'", filepath);
+        return -1;
+    }
+
+    if (!_metadata_dev_size_is_sane(&metadata))
+    {
+        nbdkit_error("Invalid dev_size in '%s'", filepath);
+        return -1;
+    }
+
+    dev->dev_size = metadata.v1.dev_size;
+
+    if (!_metadata_chunk_size_is_sane(&metadata))
+    {
+        nbdkit_error("Invalid chunk_size in '%s'", filepath);
+        return -1;
+    }
+
+    dev->chunk_size = metadata.v1.chunk_size;
+
+    _calculate_chunk_shift(&metadata, dev);
+
+    return 0;
+}
+
+int read_metadata_and_populate_chunks_dev(chunks_dev_t *dev)
+{
     size_t buff_size = strlen(dev->dir_path) + strlen("/metadata") + 1;
     char metadata_path[buff_size];
     snprintf(metadata_path, buff_size, "%s/metadata", dev->dir_path);
@@ -50,66 +115,7 @@ int read_metadata_and_populate_chunks_dev(chunks_dev_t *dev)
         return -1;
     }
 
-    size_t bytes_read;
-
-    bytes_read = fread(&(metadata.v0.magic), sizeof(metadata.v0.magic), 1, fp);
-    if (bytes_read != sizeof(metadata.v0.magic))
-    {
-        nbdkit_error("Unable to fread '%s'", metadata_path);
-        return -1;
-    }
-
-    if (metadata.v0.magic != CHUNKS_METADATA_MAGIC)
-    {
-        nbdkit_error("Bad magic in '%s'", metadata_path);
-        return -1;
-    }
-
-    bytes_read = fread(&(metadata.v0.metadata_version), sizeof(metadata.v0.metadata_version), 1, fp);
-    if (bytes_read != sizeof(metadata.v0.metadata_version))
-    {
-        nbdkit_error("Unable to fread '%s'", metadata_path);
-        return -1;
-    }
-
-    if (metadata.v0.metadata_version < CHUNKS_METADATA_MIN_SUPPORTED_VERSION
-        || metadata.v0.metadata_version > CHUNKS_METADATA_MAX_SUPPORTED_VERSION)
-    {
-        nbdkit_error("Unsupported metadata version in '%s'", metadata_path);
-        return -1;
-    }
-
-    bytes_read = fread(&(metadata.v1.dev_size), sizeof(metadata.v1.dev_size), 1, fp);
-    if (bytes_read != sizeof(metadata.v1.dev_size))
-    {
-        nbdkit_error("Unable to fread '%s'", metadata_path);
-        return -1;
-    }
-
-    bytes_read = fread(&(metadata.v1.chunk_size), sizeof(metadata.v1.chunk_size), 1, fp);
-    if (bytes_read != sizeof(metadata.v1.chunk_size))
-    {
-        nbdkit_error("Unable to fread '%s'", metadata_path);
-        return -1;
-    }
-
-    if (!_metadata_dev_size_is_sane(&metadata))
-    {
-        nbdkit_error("Invalid dev_size in '%s'", metadata_path);
-        return -1;
-    }
-
-    dev->dev_size = metadata.v1.dev_size;
-
-    if (!_metadata_chunk_size_is_sane(&metadata))
-    {
-        nbdkit_error("Invalid chunk_size in '%s'", metadata_path);
-        return -1;
-    }
-
-    dev->chunk_size = metadata.v1.chunk_size;
-
-    _calculate_chunk_shift(&metadata, dev);
+    int ret = _read_metadata_from_open_file_and_populate_chunks_dev(fp, metadata_path, dev);
 
     if (fclose(fp) != 0)
     {
@@ -117,5 +123,5 @@ int read_metadata_and_populate_chunks_dev(chunks_dev_t *dev)
         return -1;
     }
 
-    return 0;
+    return ret;
 }
