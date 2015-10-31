@@ -4,6 +4,11 @@
  * Released under the terms of the MIT license.  See https://opensource.org/licenses/MIT
  */
 
+#ifndef CHUNKS_METADATA_H
+#define CHUNKS_METADATA_H
+
+#include "chunks_dev_t.h"
+
 #include <stdint.h> // uint8_t, etc.
 #include <stdbool.h> // bool
 
@@ -56,4 +61,6 @@ typedef union _metadata_t metadata_t;
 #define CHUNKS_METADATA_MAX_SUPPORTED_VERSION 1
 
 
-int read_metadata();
+int read_metadata_and_populate_chunks_dev(chunks_dev_t *dev);
+
+#endif // CHUNKS_METADATA_H

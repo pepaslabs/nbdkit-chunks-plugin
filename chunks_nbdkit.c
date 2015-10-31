@@ -10,6 +10,8 @@
 #include <nbdkit-plugin.h>
 
 #include "chunks_metadata.h"
+#include "chunks_dev_t.h"
+#include "chunks_handle_t.h"
 
 #include <string.h> // strcmp(), etc.
 
@@ -19,18 +21,10 @@
 
 
 // per block-device state:
-char *chunks_dir_path = NULL;
-metadata_t metadata;
-uint8_t chunk_shift;
+chunks_dev_t dev;
 
 
 // per-connection state:
-struct _chunks_handle_t
-{
-
-};
-typedef struct _chunks_handle_t chunks_handle_t;
-
 chunks_handle_t handle;
 
 
@@ -41,8 +35,8 @@ int chunks_config(const char *key, const char *value)
 {
     if (strcmp(key, "dir") == 0)
     {
-        chunks_dir_path = nbdkit_absolute_path(value);
-        if (chunks_dir_path == NULL)
+        dev.dir_path = nbdkit_absolute_path(value);
+        if (dev.dir_path == NULL)
         {
             nbdkit_error("nbdkit_absolute_path() failed on dir '%s'", value);
             return -1;
@@ -59,13 +53,13 @@ int chunks_config(const char *key, const char *value)
 
 int chunks_config_complete()
 {
-    if (chunks_dir_path == NULL)
+    if (dev.dir_path == NULL)
     {
         nbdkit_error("'dir' is a required parameter");
         return -1;
     }
 
-    if (read_metadata() != 0)
+    if (read_metadata_and_populate_chunks_dev(&dev) != 0)
     {
         return -1;
     }
@@ -85,7 +79,7 @@ void chunks_close(void *passed_handle)
 
 int64_t chunks_get_size(void *passed_handle)
 {
-    return (int64_t)(metadata.v1.dev_size);
+    return (int64_t)(dev.dev_size);
 }
 
 
@@ -99,9 +93,9 @@ int64_t chunks_get_size(void *passed_handle)
 int can_make_dir()
 {
     char *template = "/chunks/tmp.XXXXXX";
-    size_t buff_size = strlen(chunks_dir_path) + strlen(template) + 1;
+    size_t buff_size = strlen(dev.dir_path) + strlen(template) + 1;
     char tmpd_path[buff_size];
-    snprintf(tmpd_path, buff_size, "%s%s", chunks_dir_path, template);
+    snprintf(tmpd_path, buff_size, "%s%s", dev.dir_path, template);
 
     char *created_tmpd_path = mkdtemp(tmpd_path);
     if (created_tmpd_path == NULL)
@@ -122,9 +116,9 @@ int can_make_dir()
 int can_make_file()
 {
     char *template = "/chunks/tmp.XXXXXX";
-    size_t buff_size = strlen(chunks_dir_path) + strlen(template) + 1;
+    size_t buff_size = strlen(dev.dir_path) + strlen(template) + 1;
     char tmpf_path[buff_size];
-    snprintf(tmpf_path, buff_size, "%s%s", chunks_dir_path, template);
+    snprintf(tmpf_path, buff_size, "%s%s", dev.dir_path, template);
 
     if (mkstemp(tmpf_path) == -1)
     {
@@ -165,8 +159,8 @@ int chunks_pread(void *passed_handle, void *buf, uint32_t count, uint64_t offset
     // split the read up into chunks
     // read each chunk
 
-    uint64_t first_chunk_number = offset << chunk_shift;
-    uint64_t first_chunk_offset = offset % metadata.v1.chunk_size;
+    uint64_t first_chunk_number = offset << dev.chunk_shift;
+    uint64_t first_chunk_offset = offset % dev.chunk_size;
 }
 
 

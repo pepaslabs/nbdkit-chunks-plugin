@@ -6,6 +6,7 @@
 
 #include "chunks_metadata.h"
 #include "chunks_math.h"
+#include "chunks_dev_t.h"
 
 #include <string.h> // strlen(), etc.
 #include <stdio.h> // fopen(), snprintf(), etc.
@@ -13,37 +14,34 @@
 #include <nbdkit-plugin.h> // nbdkit_error(), etc.
 
 
-extern char *chunks_dir_path;
-extern metadata_t metadata;
-extern uint8_t chunk_shift;
-
-
-bool _metadata_dev_size_is_sane()
+bool _metadata_dev_size_is_sane(metadata_t *metadata)
 {
-    return is_divisible_by(metadata.v1.dev_size, metadata.v1.chunk_size);
+    return is_divisible_by(metadata->v1.dev_size, metadata->v1.chunk_size);
 }
 
-bool _metadata_chunk_size_is_sane()
+bool _metadata_chunk_size_is_sane(metadata_t *metadata)
 {
-    return is_power_of_two(metadata.v1.chunk_size);
+    return is_power_of_two(metadata->v1.chunk_size);
 }
 
-void _calculate_chunk_shift()
+void _calculate_chunk_shift(metadata_t *metadata, chunks_dev_t *dev)
 {
-    chunk_shift = 0;
-    uint64_t chunk_size = metadata.v1.chunk_size;
+    dev->chunk_shift = 0;
+    uint64_t chunk_size = metadata->v1.chunk_size;
     while(chunk_size > 1)
     {
         chunk_size << 1;
-        chunk_shift++;
+        dev->chunk_shift += 1;
     }
 }
 
-int read_metadata()
+int read_metadata_and_populate_chunks_dev(chunks_dev_t *dev)
 {
-    size_t buff_size = strlen(chunks_dir_path) + strlen("/metadata") + 1;
+    metadata_t metadata;
+
+    size_t buff_size = strlen(dev->dir_path) + strlen("/metadata") + 1;
     char metadata_path[buff_size];
-    snprintf(metadata_path, buff_size, "%s/metadata", chunks_dir_path);
+    snprintf(metadata_path, buff_size, "%s/metadata", dev->dir_path);
 
     FILE *fp = fopen(metadata_path, "r");
     if (fp == NULL)
@@ -95,19 +93,23 @@ int read_metadata()
         return -1;
     }
 
-    if (!_metadata_dev_size_is_sane())
+    if (!_metadata_dev_size_is_sane(&metadata))
     {
         nbdkit_error("Invalid dev_size in '%s'", metadata_path);
         return -1;
     }
 
-    if (!_metadata_chunk_size_is_sane())
+    dev->dev_size = metadata.v1.dev_size;
+
+    if (!_metadata_chunk_size_is_sane(&metadata))
     {
         nbdkit_error("Invalid chunk_size in '%s'", metadata_path);
         return -1;
     }
 
-    _calculate_chunk_shift();
+    dev->chunk_size = metadata.v1.chunk_size;
+
+    _calculate_chunk_shift(&metadata, dev);
 
     if (fclose(fp) != 0)
     {
