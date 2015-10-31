@@ -2,14 +2,15 @@
 
 set -e
 
-name=chunks
-
-for i in ${name}_nbdkit ${name}_math ${name}_metadata
+for c in *.c
 do
+	o=$( basename "${c}" .c )
     gcc -g -O2 -std=gnu99 -fPIC -DPIC \
         -DHAVE_CONFIG_H -I. -I../.. -I../../include \
-        -o ${i}.o -c ${i}.c
+        -o ${o}.o -c ${c}
 done
+
+name=chunks
 
 gcc -shared -O2 -fPIC -DPIC \
 -Wl,-soname \

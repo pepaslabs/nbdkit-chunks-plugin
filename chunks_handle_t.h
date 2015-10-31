@@ -10,7 +10,7 @@
 // per-connection state:
 struct _chunks_handle_t
 {
-
+	void *___chunks_handle_t_isnt_used_for_anything_yet;
 };
 typedef struct _chunks_handle_t chunks_handle_t;
 
