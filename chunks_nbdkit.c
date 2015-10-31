@@ -58,7 +58,6 @@ static struct nbdkit_plugin plugin = {
   .close             = chunks_close,
 
   .get_size          = chunks_get_size,
-  .can_write         = chunks_can_write,
 
   .pread             = chunks_pread
 };
