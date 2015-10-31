@@ -14,6 +14,7 @@
 #include "chunks_metadata.h"
 
 #include "chunks_can_write.h"
+#include "chunks_config.h"
 
 #include <string.h> // strcmp(), etc.
 
@@ -29,45 +30,6 @@ chunks_dev_t dev;
 // per-connection state:
 chunks_handle_t handle;
 
-
-#define chunks_config_help "dir: absolute path to the directory where the metadata and chunks are stored."
-
-
-int chunks_config(const char *key, const char *value)
-{
-    if (strcmp(key, "dir") == 0)
-    {
-        dev.dir_path = nbdkit_absolute_path(value);
-        if (dev.dir_path == NULL)
-        {
-            nbdkit_error("nbdkit_absolute_path() failed on dir '%s'", value);
-            return -1;
-        }
-
-        return 0;
-    }
-    else
-    {
-        nbdkit_error("Unrecognized parameter: '%s'", key);
-        return -1;
-    }
-}
-
-int chunks_config_complete()
-{
-    if (dev.dir_path == NULL)
-    {
-        nbdkit_error("'dir' is a required parameter");
-        return -1;
-    }
-
-    if (read_metadata_and_populate_chunks_dev(&dev) != 0)
-    {
-        return -1;
-    }
-
-    return 0;
-}
 
 void* chunks_open(int readonly)
 {
