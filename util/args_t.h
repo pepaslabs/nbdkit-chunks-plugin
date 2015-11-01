@@ -9,9 +9,9 @@
 /* This structure is used by main to communicate with parse_opt. */
 struct _args_t
 {
-    char *directory;    /* DIRECTORY */
-    char *size;         /* Argument for -s */
-    char *chunk_size;   /* Argument for -c */
+    char *directory;        /* DIRECTORY */
+    char *size_str;         /* Argument for -s */
+    char *chunk_size_str;   /* Argument for -c */
 };
 typedef struct _args_t args_t;
 

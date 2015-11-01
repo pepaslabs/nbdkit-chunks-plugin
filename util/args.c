@@ -33,11 +33,11 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     switch (key)
     {
         case 's':
-            args->size = arg;
+            args->size_str = arg;
             break;
 
         case 'c':
-            args->chunk_size = arg;
+            args->chunk_size_str = arg;
             break;
 
         case ARGP_KEY_ARG:
@@ -93,8 +93,8 @@ extern args_t args;
 void parse_args(int argc, char *argv[])
 {
     // defaults
-    args.size = "8G";
-    args.chunk_size = "256k";
+    args.size_str = "8G";
+    args.chunk_size_str = "256k";
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
 }
