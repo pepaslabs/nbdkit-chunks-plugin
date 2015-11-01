@@ -4,19 +4,12 @@
 // based on the example at http://crasseux.com/books/ctutorial/argp-example.html
 
 #include "args.h"
+#include "args_t.h"
 
 #include <argp.h>
 #include <stdbool.h>
 
 const char *argp_program_version = "mkbd.chunks 0.1";
-
-/* This structure is used by main to communicate with parse_opt. */
-struct arguments
-{
-  char *args[1];     /* DIRECTORY */
-  char *size;        /* Argument for -s */
-  char *chunk_size;  /* Argument for -c */
-};
 
 /*
    OPTIONS.  Field 1 in ARGP.
@@ -35,16 +28,16 @@ static struct argp_option options[] =
 */
 static error_t parse_opt(int key, char *arg, struct argp_state *state)
 {
-    struct arguments *arguments = state->input;
+    args_t *args = state->input;
 
     switch (key)
     {
         case 's':
-            arguments->size = arg;
+            args->size = arg;
             break;
 
         case 'c':
-            arguments->chunk_size = arg;
+            args->chunk_size = arg;
             break;
 
         case ARGP_KEY_ARG:
@@ -52,7 +45,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
             {
                 argp_usage(state);
             }
-            arguments->args[state->arg_num] = arg;
+            args->directory = arg;
             break;
 
         case ARGP_KEY_END:
@@ -95,19 +88,13 @@ See https://github.com/pepaslabs/nbdkit-chunks-plugin";
 */
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
+extern args_t args;
+
 void parse_args(int argc, char *argv[])
 {
-    struct arguments arguments;
-
     // defaults
-    arguments.size = "8G";
-    arguments.chunk_size = "256k";
+    args.size = "8G";
+    args.chunk_size = "256k";
 
-    argp_parse(&argp, argc, argv, 0, 0, &arguments);
-
-    char *directory = arguments.args[0];
-
-    printf("directory: %s\n", directory);
-    printf("size: %s\n", arguments.size);
-    printf("chunk_size: %s\n", arguments.chunk_size);
+    argp_parse(&argp, argc, argv, 0, 0, &args);
 }
