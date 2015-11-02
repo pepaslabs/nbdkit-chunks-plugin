@@ -7,25 +7,7 @@
 #include "args.h"
 #include "args_t.h"
 #include "metadata_t.h"
-
-enum {
-    ERROR_parse_size_str_NO_LEADING_NUMERIC_CHARS = -1,
-    ERROR_parse_size_str_WOULD_OVERFLOW_UINT64 = -2,
-    ERROR_parse_suffix_UNRECOGNIZED_SUFFIX = -3,
-    ERROR_parse_suffix_BAD_in_size = -4,
-
-    ERROR_populate_metadata_from_args_SIZE_OFFSET = -10,
-    ERROR_populate_metadata_from_args_SIZE_NO_LEADING_NUMERIC_CHARS = -11,
-    ERROR_populate_metadata_from_args_SIZE_WOULD_OVERFLOW_UINT64 = -12,
-    ERROR_populate_metadata_from_args_SIZE_UNRECOGNIZED_SUFFIX = -13,
-    ERROR_populate_metadata_from_args_SIZE_BAD_in_size = -14,
-
-    ERROR_populate_metadata_from_args_CHUNK_SIZE_OFFSET = -20,
-    ERROR_populate_metadata_from_args_CHUNK_SIZE_NO_LEADING_NUMERIC_CHARS = -21,
-    ERROR_populate_metadata_from_args_CHUNK_SIZE_WOULD_OVERFLOW_UINT64 = -22,
-    ERROR_populate_metadata_from_args_CHUNK_SIZE_UNRECOGNIZED_SUFFIX = -23,
-    ERROR_populate_metadata_from_args_CHUNK_SIZE_BAD_in_size = -24
-};
+#include "mkbd.chunks_errors.h"
 
 enum _suffix_t { NONE=0, K, KB, M, MB, G, GB, T, TB };
 typedef enum _suffix_t suffix_t;
@@ -76,8 +58,6 @@ int copy_numeric(char *in, size_t in_size, char *out, size_t out_size)
 
     return i;
 }
-
-#define RETURN_SUCCESS 0
 
 // translate a suffix string into a suffix_t enum.
 // in_size is the length of 'in' plus the terminating '\0'.
@@ -188,35 +168,6 @@ int populate_metadata_from_args()
     metadata.v1.chunk_size = chunk_size;
 
     return RETURN_SUCCESS;
-}
-
-char* error_message(int ok)
-{
-    switch (ok)
-    {
-        case ERROR_populate_metadata_from_args_SIZE_NO_LEADING_NUMERIC_CHARS:
-            return "Unable to parse size.";
-        case ERROR_populate_metadata_from_args_SIZE_WOULD_OVERFLOW_UINT64:
-            return "size must be smaller than UINT64_MAX.";
-        case ERROR_populate_metadata_from_args_SIZE_UNRECOGNIZED_SUFFIX:
-        case ERROR_populate_metadata_from_args_SIZE_BAD_in_size:
-            return "Unable to parse size suffix.";
-        case ERROR_populate_metadata_from_args_CHUNK_SIZE_NO_LEADING_NUMERIC_CHARS:
-            return "Unable to parse chunk-size.";
-        case ERROR_populate_metadata_from_args_CHUNK_SIZE_WOULD_OVERFLOW_UINT64:
-            return "chunk-size must be smaller than UINT64_MAX.";
-        case ERROR_populate_metadata_from_args_CHUNK_SIZE_UNRECOGNIZED_SUFFIX:
-        case ERROR_populate_metadata_from_args_CHUNK_SIZE_BAD_in_size:
-            return "Unable to parse chunk-size suffix.";
-        default:
-            return "Unknown error.";
-    }
-}
-
-void print_error(int ok)
-{
-    char *message = error_message(ok);
-    fprintf(stderr, "ERROR: %s\n", message);
 }
 
 int main(int argc, char *argv[])
