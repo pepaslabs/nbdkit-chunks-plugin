@@ -1,14 +1,3 @@
-/*
-#include <stdlib.h> // EXIT_FAILURE, etc.
-#include <string.h> // strlen(), etc.
-#include <stdbool.h> // bool, etc.
-#include <limits.h> // INT_MAX, etc.
-
-#include "args.h"
-#include "args_t.h"
-#include "metadata_t.h"
-*/
-
 #include "mkbd.chunks_errors.h"
 
 #include <stdio.h> // fprintf(), etc.
