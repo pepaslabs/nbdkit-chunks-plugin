@@ -156,7 +156,16 @@ int main(int argc, char *argv[])
     {
         return EXIT_FAILURE;
     }
+
+    uint64_t chunk_size;
+    ok = parse_size_str(args.chunk_size_str, strlen(args.chunk_size_str)+1, &chunk_size);
+    if (ok == -1)
+    {
+        return EXIT_FAILURE;
+    }
+
     printf("size: %llu\n", size);
+    printf("chunk_size: %llu\n", chunk_size);
 
     return EXIT_SUCCESS;
 }
