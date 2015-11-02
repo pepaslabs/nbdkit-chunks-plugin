@@ -11,17 +11,20 @@
 enum {
     ERROR_parse_size_str_NO_LEADING_NUMERIC_CHARS = -1,
     ERROR_parse_size_str_WOULD_OVERFLOW_UINT64 = -2,
-    ERROR_parse_suffix_BAD_in_size = -3,
+    ERROR_parse_suffix_UNRECOGNIZED_SUFFIX = -3,
+    ERROR_parse_suffix_BAD_in_size = -4,
 
     ERROR_populate_metadata_from_args_SIZE_OFFSET = -10,
     ERROR_populate_metadata_from_args_SIZE_NO_LEADING_NUMERIC_CHARS = -11,
     ERROR_populate_metadata_from_args_SIZE_WOULD_OVERFLOW_UINT64 = -12,
-    ERROR_populate_metadata_from_args_SIZE_BAD_in_size = -13,
+    ERROR_populate_metadata_from_args_SIZE_UNRECOGNIZED_SUFFIX = -13,
+    ERROR_populate_metadata_from_args_SIZE_BAD_in_size = -14,
 
     ERROR_populate_metadata_from_args_CHUNK_SIZE_OFFSET = -20,
     ERROR_populate_metadata_from_args_CHUNK_SIZE_NO_LEADING_NUMERIC_CHARS = -21,
     ERROR_populate_metadata_from_args_CHUNK_SIZE_WOULD_OVERFLOW_UINT64 = -22,
-    ERROR_populate_metadata_from_args_CHUNK_SIZE_BAD_in_size = -23
+    ERROR_populate_metadata_from_args_CHUNK_SIZE_UNRECOGNIZED_SUFFIX = -23,
+    ERROR_populate_metadata_from_args_CHUNK_SIZE_BAD_in_size = -24
 };
 
 enum _suffix_t { NONE=0, K, KB, M, MB, G, GB, T, TB };
@@ -91,6 +94,7 @@ int parse_suffix(char *in, size_t in_size, suffix_t *out)
         else if (strncasecmp(in, "m", 1) == 0) *out = M;
         else if (strncasecmp(in, "g", 1) == 0) *out = G;
         else if (strncasecmp(in, "t", 1) == 0) *out = T;
+        else return ERROR_parse_suffix_UNRECOGNIZED_SUFFIX;
     }
     else if (in_size == 2+1)
     {
@@ -98,6 +102,7 @@ int parse_suffix(char *in, size_t in_size, suffix_t *out)
         else if (strncasecmp(in, "mb", 2) == 0) *out = MB;
         else if (strncasecmp(in, "gb", 2) == 0) *out = GB;
         else if (strncasecmp(in, "tb", 2) == 0) *out = TB;
+        else return ERROR_parse_suffix_UNRECOGNIZED_SUFFIX;
     }
     else
     {
@@ -146,6 +151,7 @@ int parse_size_str(char *in, size_t in_size, uint64_t *out)
 
     uint64_t multiplier = suffix_to_multiplier(&suffix);
 
+    // thanks to http://stackoverflow.com/a/199363
     bool would_overflow = (multiplier > (UINT64_MAX / size));
     if (would_overflow)
     {
@@ -184,6 +190,35 @@ int populate_metadata_from_args()
     return RETURN_SUCCESS;
 }
 
+char* error_message(int ok)
+{
+    switch (ok)
+    {
+        case ERROR_populate_metadata_from_args_SIZE_NO_LEADING_NUMERIC_CHARS:
+            return "Unable to parse size.";
+        case ERROR_populate_metadata_from_args_SIZE_WOULD_OVERFLOW_UINT64:
+            return "size must be smaller than UINT64_MAX.";
+        case ERROR_populate_metadata_from_args_SIZE_UNRECOGNIZED_SUFFIX:
+        case ERROR_populate_metadata_from_args_SIZE_BAD_in_size:
+            return "Unable to parse size suffix.";
+        case ERROR_populate_metadata_from_args_CHUNK_SIZE_NO_LEADING_NUMERIC_CHARS:
+            return "Unable to parse chunk-size.";
+        case ERROR_populate_metadata_from_args_CHUNK_SIZE_WOULD_OVERFLOW_UINT64:
+            return "chunk-size must be smaller than UINT64_MAX.";
+        case ERROR_populate_metadata_from_args_CHUNK_SIZE_UNRECOGNIZED_SUFFIX:
+        case ERROR_populate_metadata_from_args_CHUNK_SIZE_BAD_in_size:
+            return "Unable to parse chunk-size suffix.";
+        default:
+            return "Unknown error.";
+    }
+}
+
+void print_error(int ok)
+{
+    char *message = error_message(ok);
+    fprintf(stderr, "ERROR: %s\n", message);
+}
+
 int main(int argc, char *argv[])
 {
     int ok;
@@ -195,7 +230,11 @@ int main(int argc, char *argv[])
     printf("args.chunk_size_str: %s\n", args.chunk_size_str);
 
     ok = populate_metadata_from_args();
-    if (ok < 0) return ok * -1;
+    if (ok < 0)
+    {
+        print_error(ok);
+        return ok * -1;
+    }
 
     printf("size: %llu\n", metadata.v1.dev_size);
     printf("chunk_size: %llu\n", metadata.v1.chunk_size);
