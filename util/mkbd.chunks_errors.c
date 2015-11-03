@@ -37,6 +37,13 @@ char* error_message(int ok)
         case ERROR_create_chunks_directory_mkdir_FAILED:
             return "ERROR: Unable to create 'chunks' directory";
 
+        case ERROR_create_directory_if_needed_mkdir_FAILED:
+            return "ERROR: Unable to create directory";
+        case ERROR_create_directory_if_needed_stat_FAILED:
+            return "ERROR: stat() failed for directory";
+        case ERROR_create_directory_if_needed_stat_EXISTS_BUT_NOT_DIR:
+            return "ERROR: directory path exists but is not a directory";
+
         default:
             return "ERROR: Unknown error";
     }

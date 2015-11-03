@@ -6,6 +6,7 @@
 #include <fcntl.h> // open(), etc.
 #include <unistd.h> // pwrite(), etc.
 #include <sys/stat.h> // mkdir(), etc. 
+#include <errno.h> // errno, etc
 
 #include "args.h"
 #include "args_t.h"
@@ -79,6 +80,10 @@ int populate_metadata_file(int fd)
     return 0;
 }
 
+#define CREATE_FAIL_IF_EXISTS (O_WRONLY|O_CREAT|O_EXCL)
+#define CHMOD_RW_______ (S_IRUSR|S_IWUSR)
+#define CHMOD_RWX______ (S_IRWXU)
+
 int create_metadata_file()
 {
     int ok;
@@ -94,8 +99,6 @@ int create_metadata_file()
         return ERROR_create_metadata_file_snprintf_FAILED;
     }
 
-#define CREATE_FAIL_IF_EXISTS (O_WRONLY|O_CREAT|O_EXCL)
-#define CHMOD_RW_______ (S_IRUSR|S_IWUSR)
 
     fd = open(metadata_path, CREATE_FAIL_IF_EXISTS, CHMOD_RW_______);
     if (fd == -1)
@@ -119,6 +122,47 @@ int create_metadata_file()
     return 0;
 }
 
+int create_directory_if_needed()
+{
+    int fd;
+    int ok;
+
+    // thanks to http://stackoverflow.com/a/9314702
+    struct stat s;
+    ok = stat(args.directory, &s);
+    if (ok == -1)
+    {
+        if (errno == ENOENT) // directory does not exist
+        {
+            // see http://techoverflow.net/blog/2013/04/05/how-to-use-mkdir-from-sysstat-h/ 
+            fd = mkdir(args.directory, CHMOD_RWX______);
+            if (fd == -1)
+            {
+                return ERROR_create_directory_if_needed_mkdir_FAILED;
+            }
+
+            return 0;
+        }
+        else // other error
+        {
+            ERROR_create_directory_if_needed_stat_FAILED;
+        }
+    }
+    else
+    {
+        if (S_ISDIR(s.st_mode)) // exists and is a directory
+        {
+            return 0;
+        }
+        else // exists but is NOT a directory
+        {
+            return ERROR_create_directory_if_needed_stat_EXISTS_BUT_NOT_DIR;
+        }
+    }
+
+    return 0;
+}
+
 int create_chunks_directory()
 {
     size_t buf_size;
@@ -132,8 +176,6 @@ int create_chunks_directory()
     {
         return ERROR_create_chunks_directory_snprintf_FAILED;
     }
-
-#define CHMOD_RWX______ (S_IRWXU)
 
     // see http://techoverflow.net/blog/2013/04/05/how-to-use-mkdir-from-sysstat-h/ 
     fd = mkdir(chunks_dir_path, CHMOD_RWX______);
@@ -163,7 +205,13 @@ int main(int argc, char *argv[])
     printf("size: %llu bytes\n", metadata.v1.dev_size);
     printf("chunk_size: %llu bytes\n", metadata.v1.chunk_size);
 
-    // create the metadata file
+    ok = create_directory_if_needed();
+    if (ok < 0)
+    {
+        print_error(ok);
+        return ok * -1;
+    }
+
     ok = create_metadata_file();
     if (ok < 0)
     {
@@ -171,7 +219,6 @@ int main(int argc, char *argv[])
         return ok * -1;
     }
 
-    // create the chunks directory
     ok = create_chunks_directory();
     if (ok < 0)
     {

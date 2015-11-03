@@ -24,7 +24,11 @@ enum {
     ERROR_create_metadata_file_open_FAILED = -33,
     ERROR_create_metadata_file_close_FAILED = -34,
     ERROR_create_chunks_directory_snprintf_FAILED = -35,
-    ERROR_create_chunks_directory_mkdir_FAILED = -36
+    ERROR_create_chunks_directory_mkdir_FAILED = -36,
+
+    ERROR_create_directory_if_needed_mkdir_FAILED = -41,
+    ERROR_create_directory_if_needed_stat_FAILED = -42,
+    ERROR_create_directory_if_needed_stat_EXISTS_BUT_NOT_DIR = -43
 };
 
 #define RETURN_SUCCESS (0)
