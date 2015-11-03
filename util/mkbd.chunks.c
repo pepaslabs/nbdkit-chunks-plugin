@@ -11,17 +11,12 @@
 #include "args.h"
 #include "args_t.h"
 #include "metadata_t.h"
+#include "metadata.h"
 #include "mkbd.chunks_errors.h"
 #include "parsing.h"
 
 args_t args;
 metadata_t metadata;
-
-void metadata_init_v0(metadata_t *inout)
-{
-    inout->v0.magic = CHUNKS_METADATA_MAGIC;
-    inout->v0.metadata_version = 1;
-}
 
 int populate_metadata_from_args()
 {

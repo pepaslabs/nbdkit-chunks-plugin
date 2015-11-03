@@ -4,8 +4,8 @@
  * Released under the terms of the MIT license.  See https://opensource.org/licenses/MIT
  */
 
-#ifndef METADATA_H
-#define METADATA_H
+#ifndef METADATA_T_H
+#define METADATA_T_H
 
 #include <stdint.h> // uint8_t, etc.
 
@@ -54,4 +54,4 @@ union _metadata_t
 typedef union _metadata_t metadata_t;
 
 
-#endif // METADATA_H
+#endif // METADATA_T_H
