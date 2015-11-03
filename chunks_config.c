@@ -47,7 +47,7 @@ int chunks_config_complete()
     }
 
     metadata_t metadata;
-    ok = read_metadata(&dev, &metadata);
+    ok = read_metadata(dev.dir_path, &metadata);
     if (ok != 0) return -1;
 
     populate_chunks_dev_from_metadata(&dev, &metadata);

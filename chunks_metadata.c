@@ -39,10 +39,10 @@ int _read_metadata_from_open_file(FILE *fp, char *filepath, metadata_t *metadata
 {
     size_t bytes_read;
 
-    bytes_read = fread(&(metadata->v0.magic), sizeof(metadata->v0.magic), 1, fp);
+    bytes_read = fread(&(metadata->v0.magic), 1, sizeof(metadata->v0.magic), fp);
     if (bytes_read != sizeof(metadata->v0.magic))
     {
-        nbdkit_error("Unable to fread '%s'", filepath);
+        nbdkit_error("Unable to fread magic in '%s'", filepath);
         return -1;
     }
 
@@ -52,10 +52,10 @@ int _read_metadata_from_open_file(FILE *fp, char *filepath, metadata_t *metadata
         return -1;
     }
 
-    bytes_read = fread(&(metadata->v0.metadata_version), sizeof(metadata->v0.metadata_version), 1, fp);
+    bytes_read = fread(&(metadata->v0.metadata_version), 1, sizeof(metadata->v0.metadata_version), fp);
     if (bytes_read != sizeof(metadata->v0.metadata_version))
     {
-        nbdkit_error("Unable to fread '%s'", filepath);
+        nbdkit_error("Unable to fread metadata_version in '%s'", filepath);
         return -1;
     }
 
@@ -66,17 +66,18 @@ int _read_metadata_from_open_file(FILE *fp, char *filepath, metadata_t *metadata
         return -1;
     }
 
-    bytes_read = fread(&(metadata->v1.dev_size), sizeof(metadata->v1.dev_size), 1, fp);
+    bytes_read = fread(&(metadata->v1.dev_size), 1, sizeof(metadata->v1.dev_size), fp);
     if (bytes_read != sizeof(metadata->v1.dev_size))
     {
-        nbdkit_error("Unable to fread '%s'", filepath);
+        printf("bytes_read: %i\n", bytes_read);
+        nbdkit_error("Unable to fread dev_size in '%s'", filepath);
         return -1;
     }
 
-    bytes_read = fread(&(metadata->v1.chunk_size), sizeof(metadata->v1.chunk_size), 1, fp);
+    bytes_read = fread(&(metadata->v1.chunk_size), 1, sizeof(metadata->v1.chunk_size), fp);
     if (bytes_read != sizeof(metadata->v1.chunk_size))
     {
-        nbdkit_error("Unable to fread '%s'", filepath);
+        nbdkit_error("Unable to fread chunk_size in '%s'", filepath);
         return -1;
     }
 
@@ -95,11 +96,11 @@ int _read_metadata_from_open_file(FILE *fp, char *filepath, metadata_t *metadata
     return 0;
 }
 
-int read_metadata(chunks_dev_t *dev, metadata_t *metadata)
+int read_metadata(char *dev_dir_path, metadata_t *metadata)
 {
-    size_t buff_size = strlen(dev->dir_path) + strlen("/metadata") + 1;
+    size_t buff_size = strlen(dev_dir_path) + strlen("/metadata") + 1;
     char metadata_path[buff_size];
-    snprintf(metadata_path, buff_size, "%s/metadata", dev->dir_path);
+    snprintf(metadata_path, buff_size, "%s/metadata", dev_dir_path);
 
     FILE *fp = fopen(metadata_path, "r");
     if (fp == NULL)
