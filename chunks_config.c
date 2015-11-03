@@ -38,16 +38,19 @@ int chunks_config(const char *key, const char *value)
 
 int chunks_config_complete()
 {
+    int ok;
+
     if (dev.dir_path == NULL)
     {
         nbdkit_error("'dir' is a required parameter");
         return -1;
     }
 
-    if (read_metadata_and_populate_chunks_dev(&dev) != 0)
-    {
-        return -1;
-    }
+    metadata_t metadata;
+    ok = read_metadata(&dev, &metadata);
+    if (ok != 0) return -1;
+
+    populate_chunks_dev_from_metadata(&dev, &metadata);
 
     return 0;
 }
