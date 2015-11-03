@@ -94,7 +94,6 @@ int create_metadata_file()
         return ERROR_create_metadata_file_snprintf_FAILED;
     }
 
-
     fd = open(metadata_path, CREATE_FAIL_IF_EXISTS, CHMOD_RW_______);
     if (fd == -1)
     {
