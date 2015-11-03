@@ -17,10 +17,18 @@ enum {
     ERROR_populate_metadata_from_args_CHUNK_SIZE_NO_LEADING_NUMERIC_CHARS = -21,
     ERROR_populate_metadata_from_args_CHUNK_SIZE_WOULD_OVERFLOW_UINT64 = -22,
     ERROR_populate_metadata_from_args_CHUNK_SIZE_UNRECOGNIZED_SUFFIX = -23,
-    ERROR_populate_metadata_from_args_CHUNK_SIZE_BAD_in_size = -24
+    ERROR_populate_metadata_from_args_CHUNK_SIZE_BAD_in_size = -24,
+
+    ERROR_populate_metadata_file_pwrite_FAILED = -31,
+    ERROR_create_metadata_file_snprintf_FAILED = -32,
+    ERROR_create_metadata_file_open_FAILED = -33,
+    ERROR_create_metadata_file_close_FAILED = -34,
+    ERROR_create_chunks_directory_snprintf_FAILED = -35,
+    ERROR_create_chunks_directory_mkdir_FAILED = -36
 };
 
-#define RETURN_SUCCESS 0
+#define RETURN_SUCCESS (0)
+#define RETURN_FAILURE (-1)
 
 char* error_message(int ok);
 void print_error(int ok);
