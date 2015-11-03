@@ -94,8 +94,10 @@ int create_metadata_file()
         return ERROR_create_metadata_file_snprintf_FAILED;
     }
 
+#define CREATE_FAIL_IF_EXISTS (O_WRONLY|O_CREAT|O_EXCL)
 #define CHMOD_RW_______ (S_IRUSR|S_IWUSR)
-    fd = open(metadata_path, O_WRONLY|O_CREAT|O_EXCL, CHMOD_RW_______);
+
+    fd = open(metadata_path, CREATE_FAIL_IF_EXISTS, CHMOD_RW_______);
     if (fd == -1)
     {
         return ERROR_create_metadata_file_open_FAILED;
@@ -131,8 +133,9 @@ int create_chunks_directory()
         return ERROR_create_chunks_directory_snprintf_FAILED;
     }
 
-    // see http://techoverflow.net/blog/2013/04/05/how-to-use-mkdir-from-sysstat-h/ 
 #define CHMOD_RWX______ (S_IRWXU)
+
+    // see http://techoverflow.net/blog/2013/04/05/how-to-use-mkdir-from-sysstat-h/ 
     fd = mkdir(chunks_dir_path, CHMOD_RWX______);
     if (fd == -1)
     {
@@ -148,10 +151,6 @@ int main(int argc, char *argv[])
 
     parse_args(argc, argv);
 
-    printf("args.directory: %s\n", args.directory);
-    printf("args.size_str: %s\n", args.size_str);
-    printf("args.chunk_size_str: %s\n", args.chunk_size_str);
-
     ok = populate_metadata_from_args();
     if (ok < 0)
     {
@@ -159,8 +158,10 @@ int main(int argc, char *argv[])
         return ok * -1;
     }
 
-    printf("size: %llu\n", metadata.v1.dev_size);
-    printf("chunk_size: %llu\n", metadata.v1.chunk_size);
+    printf("Creating chunked block device:\n");
+    printf("directory: %s\n", args.directory);
+    printf("size: %llu bytes\n", metadata.v1.dev_size);
+    printf("chunk_size: %llu bytes\n", metadata.v1.chunk_size);
 
     // create the metadata file
     ok = create_metadata_file();
