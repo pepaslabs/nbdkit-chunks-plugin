@@ -12,36 +12,31 @@
 #include "hexify.h"
 
 #include <nbdkit-plugin.h> // nbdkit_error(), etc.
-#include <stdio.h> // fopen(), etc.
+#include <stdio.h> // snprintf(), etc.
+#include <fcntl.h> // for open(), close(), etc.
+#include <unistd.h> // for pread(), etc.
 #include <string.h> // strlen(), etc.
 
 extern chunks_dev_t dev;
 
-int _read_from_open_file(FILE *fp, char *filepath, uint64_t offset, uint32_t count, unsigned char *dest)
+int _read_from_open_file(int fd, char *filepath, uint64_t offset, uint32_t count, unsigned char *dest)
 {
-    if (fseek(fp, offset, SEEK_SET) != 0)
+    while(count > 0)
     {
-        nbdkit_error("Unable to fseek '%s'", filepath);
-        return -1;
-    }
-
-    size_t bytes_remaining = count;
-
-    while(bytes_remaining > 0)
-    {
-        size_t bytes_read = fread(dest, sizeof(unsigned char), bytes_remaining, fp);
-        if (ferror(fp) || feof(fp) || bytes_read == 0)
+        ssize_t bytes_read = pread(fd, dest, count, offset);
+        if (bytes_read < 1)
         {
             break;
         }
 
-        bytes_remaining -= bytes_read;
+        count -= bytes_read;
+        offset += bytes_read;
         dest += bytes_read;
     }
 
-    if (bytes_remaining)
+    if (count > 0)
     {
-        nbdkit_error("Unable to fread '%s'", filepath);
+        nbdkit_error("Unable to pread '%s'", filepath);
         return -1;
     }
 
@@ -50,18 +45,18 @@ int _read_from_open_file(FILE *fp, char *filepath, uint64_t offset, uint32_t cou
 
 int _read_from_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, unsigned char *dest)
 {
-    FILE *fp = fopen(chunk_path, "r");
-    if (fp == NULL)
+    int fd = open(chunk_path, O_RDONLY);
+    if (fd == -1)
     {
-        nbdkit_error("Unable to fopen '%s'", chunk_path);
+        nbdkit_error("Unable to open '%s'", chunk_path);
         return -1;
     }
 
-    int ret = _read_from_open_file(fp, chunk_path, offset, count, dest);
+    int ret = _read_from_open_file(fd, chunk_path, offset, count, dest);
 
-    if (fclose(fp) != 0)
+    if (close(fd) == -1)
     {
-        nbdkit_error("Unable to fclose '%s'", chunk_path);
+        nbdkit_error("Unable to close '%s'", chunk_path);
         return -1;
     }
 

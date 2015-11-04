@@ -9,7 +9,9 @@
 #include "chunks_dev_t.h"
 
 #include <string.h> // strlen(), etc.
-#include <stdio.h> // fopen(), snprintf(), etc.
+#include <stdio.h> // snprintf(), etc.
+#include <fcntl.h> // open(), close(), etc.
+#include <unistd.h> // pread(), etc.
 
 #include <nbdkit-plugin.h> // nbdkit_error(), etc.
 
@@ -35,16 +37,18 @@ void _calculate_chunk_shift(metadata_t *metadata, chunks_dev_t *dev)
     }
 }
 
-int _read_metadata_from_open_file(FILE *fp, char *filepath, metadata_t *metadata)
+int _read_metadata_from_open_file(int fd, char *filepath, metadata_t *metadata)
 {
-    size_t bytes_read;
-
-    bytes_read = fread(&(metadata->v0.magic), 1, sizeof(metadata->v0.magic), fp);
+    off_t offset = 0;
+    ssize_t bytes_read;
+    
+    bytes_read = pread(fd, &(metadata->v0.magic), sizeof(metadata->v0.magic), offset);
     if (bytes_read != sizeof(metadata->v0.magic))
     {
-        nbdkit_error("Unable to fread magic in '%s'", filepath);
+        nbdkit_error("Unable to pread magic in '%s'", filepath);
         return -1;
     }
+    offset += bytes_read;
 
     if (metadata->v0.magic != CHUNKS_METADATA_MAGIC)
     {
@@ -52,34 +56,36 @@ int _read_metadata_from_open_file(FILE *fp, char *filepath, metadata_t *metadata
         return -1;
     }
 
-    bytes_read = fread(&(metadata->v0.metadata_version), 1, sizeof(metadata->v0.metadata_version), fp);
+    bytes_read = pread(fd, &(metadata->v0.metadata_version), sizeof(metadata->v0.metadata_version), offset);
     if (bytes_read != sizeof(metadata->v0.metadata_version))
     {
-        nbdkit_error("Unable to fread metadata_version in '%s'", filepath);
+        nbdkit_error("Unable to pread metadata_version in '%s'", filepath);
         return -1;
     }
+    offset += bytes_read;
 
     if (metadata->v0.metadata_version < CHUNKS_METADATA_MIN_SUPPORTED_VERSION
         || metadata->v0.metadata_version > CHUNKS_METADATA_MAX_SUPPORTED_VERSION)
     {
-        nbdkit_error("Unsupported metadata version in '%s'", filepath);
+        nbdkit_error("Unsupported metadata version (%u) in '%s'", metadata->v0.metadata_version, filepath);
         return -1;
     }
 
-    bytes_read = fread(&(metadata->v1.dev_size), 1, sizeof(metadata->v1.dev_size), fp);
+    bytes_read = pread(fd, &(metadata->v1.dev_size), sizeof(metadata->v1.dev_size), offset);
     if (bytes_read != sizeof(metadata->v1.dev_size))
     {
-        printf("bytes_read: %i\n", bytes_read);
-        nbdkit_error("Unable to fread dev_size in '%s'", filepath);
+        nbdkit_error("Unable to pread dev_size in '%s'", filepath);
         return -1;
     }
+    offset += bytes_read;
 
-    bytes_read = fread(&(metadata->v1.chunk_size), 1, sizeof(metadata->v1.chunk_size), fp);
+    bytes_read = pread(fd, &(metadata->v1.chunk_size), sizeof(metadata->v1.chunk_size), offset);
     if (bytes_read != sizeof(metadata->v1.chunk_size))
     {
-        nbdkit_error("Unable to fread chunk_size in '%s'", filepath);
+        nbdkit_error("Unable to pread chunk_size in '%s'", filepath);
         return -1;
     }
+    offset += bytes_read;
 
     if (!_metadata_dev_size_is_sane(metadata))
     {
@@ -98,22 +104,24 @@ int _read_metadata_from_open_file(FILE *fp, char *filepath, metadata_t *metadata
 
 int read_metadata(char *dev_dir_path, metadata_t *metadata)
 {
+    int err;
+
     size_t buff_size = strlen(dev_dir_path) + strlen("/metadata") + 1;
     char metadata_path[buff_size];
     snprintf(metadata_path, buff_size, "%s/metadata", dev_dir_path);
 
-    FILE *fp = fopen(metadata_path, "r");
-    if (fp == NULL)
+    int fd = open(metadata_path, O_RDONLY);
+    if (fd == -1)
     {
-        nbdkit_error("Unable to fopen '%s'", metadata_path);
+        nbdkit_error("Unable to open '%s'", metadata_path);
         return -1;
     }
 
-    int ret = _read_metadata_from_open_file(fp, metadata_path, metadata);
+    int ret = _read_metadata_from_open_file(fd, metadata_path, metadata);
 
-    if (fclose(fp) != 0)
+    if (close(fd) == -1)
     {
-        nbdkit_error("Unable to fclose '%s'", metadata_path);
+        nbdkit_error("Unable to close '%s'", metadata_path);
         return -1;
     }
 
