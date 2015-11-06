@@ -15,34 +15,25 @@
 #include "chunks_config.h"
 #include "chunks_can_write.h"
 #include "chunks_pread.h"
-
+#include "chunks_pwrite.h"
 
 #define THREAD_MODEL NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS
-
 
 // per block-device state:
 chunks_dev_t dev;
 
-
 // per-connection state:
 chunks_handle_t handle;
-
 
 void* chunks_open(int readonly)
 {
     return (void*)(&handle);
 }
 
-void chunks_close(void *passed_handle)
-{
-    ;
-}
-
 int64_t chunks_get_size(void *passed_handle)
 {
     return (int64_t)(dev.dev_size);
 }
-
 
 static struct nbdkit_plugin plugin = {
   .name              = "chunks",
@@ -55,11 +46,11 @@ static struct nbdkit_plugin plugin = {
   .config_help       = chunks_config_help,
 
   .open              = chunks_open,
-  .close             = chunks_close,
 
   .get_size          = chunks_get_size,
 
-  .pread             = chunks_pread
+  .pread             = chunks_pread,
+  .pwrite            = chunks_pwrite
 };
 
 NBDKIT_REGISTER_PLUGIN(plugin)

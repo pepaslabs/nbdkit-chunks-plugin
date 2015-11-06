@@ -75,7 +75,7 @@ int populate_metadata_file(int fd)
     return 0;
 }
 
-#define CREATE_FAIL_IF_EXISTS (O_WRONLY|O_CREAT|O_EXCL)
+#define CREATE_FAIL_IF_EXISTS (O_CREAT|O_EXCL)
 #define CHMOD_RW_______ (S_IRUSR|S_IWUSR)
 #define CHMOD_RWX______ (S_IRWXU)
 
@@ -94,7 +94,7 @@ int create_metadata_file()
         return ERROR_create_metadata_file_snprintf_FAILED;
     }
 
-    fd = open(metadata_path, CREATE_FAIL_IF_EXISTS, CHMOD_RW_______);
+    fd = open(metadata_path, O_WRONLY|CREATE_FAIL_IF_EXISTS, CHMOD_RW_______);
     if (fd == -1)
     {
         return ERROR_create_metadata_file_open_FAILED;

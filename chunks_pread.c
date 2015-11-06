@@ -73,7 +73,7 @@ int _read_from_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, 
     return ret;
 }
 
-int _read_from_chunk_num(uint64_t chunk_index, uint64_t offset, uint32_t count, unsigned char *dest)
+int _read_from_chunk_at_index(uint64_t chunk_index, uint64_t offset, uint32_t count, unsigned char *dest)
 {
     size_t buff_size = strlen(dev.dir_path) + strlen("/chunks/18446744073709551615") + 1;
     char chunk_path[buff_size];
@@ -91,7 +91,7 @@ int chunks_pread(void *passed_handle, void *buf, uint32_t count, uint64_t offset
         uint64_t chunk_remaining = dev.chunk_size - chunk_offset;
         uint32_t chunk_count = count <= chunk_remaining ? count : chunk_remaining;
 
-        int ret = _read_from_chunk_num(chunk_index, chunk_offset, chunk_count, (unsigned char*)buf);
+        int ret = _read_from_chunk_at_index(chunk_index, chunk_offset, chunk_count, (unsigned char*)buf);
         if (ret != 0)
         {
             return ret;
