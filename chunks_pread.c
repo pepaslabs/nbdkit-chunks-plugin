@@ -15,6 +15,8 @@
 #include <fcntl.h> // for open(), close(), etc.
 #include <unistd.h> // for pread(), etc.
 #include <string.h> // strlen(), etc.
+#include <strings.h> // bzero(), etc.
+#include <errno.h> // ENOENT, etc.
 
 extern chunks_dev_t dev;
 
@@ -47,8 +49,17 @@ int _read_from_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, 
     int fd = open(chunk_path, O_RDONLY);
     if (fd == -1)
     {
-        nbdkit_error("Unable to open '%s'", chunk_path);
-        return -1;
+        if (errno == ENOENT)
+        {
+            // if there is no chunk file, assume it to be all zeros.
+            bzero(dest, count);
+            return 0;
+        }
+        else
+        {
+            nbdkit_error("Unable to open '%s'", chunk_path);
+            return -1;
+        }
     }
 
     int ret = _read_from_open_file(fd, chunk_path, offset, count, dest);
