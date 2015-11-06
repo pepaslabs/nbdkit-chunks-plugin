@@ -75,7 +75,7 @@ int chunks_pread(void *passed_handle, void *buf, uint32_t count, uint64_t offset
 {
     while(count > 0)
     {
-        uint64_t chunk_num = offset << dev.chunk_shift;
+        uint64_t chunk_num = offset >> dev.chunk_shift;
         uint64_t chunk_offset = offset % dev.chunk_size;
         uint64_t chunk_remaining = dev.chunk_size - chunk_offset;
         uint32_t chunk_count = count <= chunk_remaining ? count : chunk_remaining;
