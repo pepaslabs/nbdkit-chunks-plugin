@@ -32,7 +32,7 @@ void _calculate_chunk_shift(metadata_t *metadata, chunks_dev_t *dev)
     uint64_t chunk_size = metadata->v1.chunk_size;
     while(chunk_size > 1)
     {
-        chunk_size << 1;
+        chunk_size = chunk_size >> 1;
         dev->chunk_shift += 1;
     }
 }
