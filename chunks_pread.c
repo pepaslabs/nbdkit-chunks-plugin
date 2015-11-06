@@ -9,7 +9,6 @@
 #include "chunks_pread.h"
 
 #include "chunks_dev_t.h"
-#include "hexify.h"
 
 #include <nbdkit-plugin.h> // nbdkit_error(), etc.
 #include <stdio.h> // snprintf(), etc.
@@ -63,17 +62,11 @@ int _read_from_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, 
     return ret;
 }
 
-void _uint64_t_to_hex(uint64_t in, char *buf, size_t buf_size)
-{
-    hexify((unsigned char*)(&in), sizeof(in), buf, buf_size);
-}
-
 int _read_from_chunk_num(uint64_t chunk_num, uint64_t offset, uint32_t count, unsigned char *dest)
 {
-    size_t buff_size = strlen(dev.dir_path) + strlen("/chunks/ffffffffffffffff") + 1;
+    size_t buff_size = strlen(dev.dir_path) + strlen("/chunks/18446744073709551615") + 1;
     char chunk_path[buff_size];
-    int chars_written = snprintf(chunk_path, buff_size, "%s/chunks/", dev.dir_path);
-    _uint64_t_to_hex(chunk_num, chunk_path+chars_written, buff_size-chars_written);
+    int chars_written = snprintf(chunk_path, buff_size, "%s/chunks/%0.20llu", dev.dir_path, chunk_num);
 
     return _read_from_chunk_at_path(chunk_path, offset, count, dest);
 }
