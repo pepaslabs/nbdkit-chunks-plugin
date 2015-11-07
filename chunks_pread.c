@@ -37,7 +37,7 @@ int _read_from_open_file(int fd, char *filepath, uint64_t offset, uint32_t count
 
     if (count > 0)
     {
-        nbdkit_error("Unable to pread '%s'", filepath);
+        nbdkit_error("Unable to pread '%s': %m", filepath);
         return -1;
     }
 
@@ -57,7 +57,7 @@ int _read_from_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, 
         }
         else
         {
-            nbdkit_error("Unable to open '%s'", chunk_path);
+            nbdkit_error("Unable to open '%s': %m", chunk_path);
             return -1;
         }
     }
@@ -66,7 +66,7 @@ int _read_from_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, 
 
     if (close(fd) == -1)
     {
-        nbdkit_error("Unable to close '%s'", chunk_path);
+        nbdkit_error("Unable to close '%s': %m", chunk_path);
         return -1;
     }
 

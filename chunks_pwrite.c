@@ -41,7 +41,7 @@ int _write_to_open_file(int fd, char *filepath, uint64_t offset, uint32_t count,
 
     if (count > 0)
     {
-        nbdkit_error("Unable to pwrite '%s'", filepath);
+        nbdkit_error("Unable to pwrite '%s': %m", filepath);
         return -1;
     }
 
@@ -61,18 +61,18 @@ int _write_to_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, c
             fd = open(chunk_path, O_WRONLY|CREATE_FAIL_IF_EXISTS, CHMOD_RW_______);
             if (fd == -1)
             {
-                nbdkit_error("Unable to create '%s'", chunk_path);
+                nbdkit_error("Unable to create '%s': %m", chunk_path);
                 return -1;
             }
 
             int err = fallocate(fd, 0, 0, dev.chunk_size);
             if (err == -1)
             {
-                nbdkit_error("Unable to fallocate '%s'", chunk_path);
+                nbdkit_error("Unable to fallocate '%s': %m", chunk_path);
 
                 if (close(fd) == -1)
                 {
-                    nbdkit_error("Unable to close '%s'", chunk_path);
+                    nbdkit_error("Unable to close '%s': %m", chunk_path);
                 }
 
                 return -1;
@@ -80,7 +80,7 @@ int _write_to_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, c
         }
         else
         {
-            nbdkit_error("Unable to open '%s'", chunk_path);
+            nbdkit_error("Unable to open '%s': %m", chunk_path);
             return -1;
         }
     }
@@ -89,7 +89,7 @@ int _write_to_chunk_at_path(char *chunk_path, uint64_t offset, uint32_t count, c
 
     if (close(fd) == -1)
     {
-        nbdkit_error("Unable to close '%s'", chunk_path);
+        nbdkit_error("Unable to close '%s': %m", chunk_path);
         return -1;
     }
 

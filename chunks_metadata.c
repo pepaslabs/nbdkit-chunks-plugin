@@ -45,7 +45,7 @@ int _read_metadata_from_open_file(int fd, char *filepath, metadata_t *metadata)
     bytes_read = pread(fd, &(metadata->v0.magic), sizeof(metadata->v0.magic), offset);
     if (bytes_read != sizeof(metadata->v0.magic))
     {
-        nbdkit_error("Unable to pread magic in '%s'", filepath);
+        nbdkit_error("Unable to pread magic in '%s': %m", filepath);
         return -1;
     }
     offset += bytes_read;
@@ -59,7 +59,7 @@ int _read_metadata_from_open_file(int fd, char *filepath, metadata_t *metadata)
     bytes_read = pread(fd, &(metadata->v0.metadata_version), sizeof(metadata->v0.metadata_version), offset);
     if (bytes_read != sizeof(metadata->v0.metadata_version))
     {
-        nbdkit_error("Unable to pread metadata_version in '%s'", filepath);
+        nbdkit_error("Unable to pread metadata_version in '%s': %m", filepath);
         return -1;
     }
     offset += bytes_read;
@@ -74,7 +74,7 @@ int _read_metadata_from_open_file(int fd, char *filepath, metadata_t *metadata)
     bytes_read = pread(fd, &(metadata->v1.dev_size), sizeof(metadata->v1.dev_size), offset);
     if (bytes_read != sizeof(metadata->v1.dev_size))
     {
-        nbdkit_error("Unable to pread dev_size in '%s'", filepath);
+        nbdkit_error("Unable to pread dev_size in '%s': %m", filepath);
         return -1;
     }
     offset += bytes_read;
@@ -82,7 +82,7 @@ int _read_metadata_from_open_file(int fd, char *filepath, metadata_t *metadata)
     bytes_read = pread(fd, &(metadata->v1.chunk_size), sizeof(metadata->v1.chunk_size), offset);
     if (bytes_read != sizeof(metadata->v1.chunk_size))
     {
-        nbdkit_error("Unable to pread chunk_size in '%s'", filepath);
+        nbdkit_error("Unable to pread chunk_size in '%s': %m", filepath);
         return -1;
     }
     offset += bytes_read;
@@ -113,7 +113,7 @@ int read_metadata(char *dev_dir_path, metadata_t *metadata)
     int fd = open(metadata_path, O_RDONLY);
     if (fd == -1)
     {
-        nbdkit_error("Unable to open '%s'", metadata_path);
+        nbdkit_error("Unable to open '%s': %m", metadata_path);
         return -1;
     }
 
@@ -121,7 +121,7 @@ int read_metadata(char *dev_dir_path, metadata_t *metadata)
 
     if (close(fd) == -1)
     {
-        nbdkit_error("Unable to close '%s'", metadata_path);
+        nbdkit_error("Unable to close '%s': %m", metadata_path);
         return -1;
     }
 

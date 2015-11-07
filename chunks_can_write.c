@@ -29,13 +29,13 @@ int _can_make_dir()
     char *created_tmpd_path = mkdtemp(tmpd_path);
     if (created_tmpd_path == NULL)
     {
-        nbdkit_error("Can't mkdtemp '%s'", tmpd_path);
+        nbdkit_error("Can't mkdtemp '%s': %m", tmpd_path);
         return -1;
     }
 
     if (unlink(created_tmpd_path) != 0)
     {
-        nbdkit_error("Can't unlink '%s'", created_tmpd_path);
+        nbdkit_error("Can't unlink '%s': %m", created_tmpd_path);
         return -1;
     }
 
@@ -51,13 +51,13 @@ int _can_make_file()
 
     if (mkstemp(tmpf_path) == -1)
     {
-        nbdkit_error("Can't mkstemp '%s'", tmpf_path);
+        nbdkit_error("Can't mkstemp '%s': %m", tmpf_path);
         return -1;
     }
 
     if (unlink(tmpf_path) != 0)
     {
-        nbdkit_error("Can't unlink '%s'", tmpf_path);
+        nbdkit_error("Can't unlink '%s': %m", tmpf_path);
         return -1;
     }
 
