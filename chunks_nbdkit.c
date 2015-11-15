@@ -39,7 +39,7 @@ static struct nbdkit_plugin plugin = {
   .name              = "chunks",
   .longname          = "nbdkit chunks plugin",
   .description       = "An nbdkit plugin which stores data in many small files, rather than one large backing file.",
-  .version           = "0.0",
+  .version           = "0.1",
 
   .config            = chunks_config,
   .config_complete   = chunks_config_complete,
