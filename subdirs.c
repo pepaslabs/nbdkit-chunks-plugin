@@ -1,10 +1,16 @@
+/* subdirs.c
+ * See https://github.com/pepaslabs/nbdkit-chunks-plugin
+ * Copyright (C) 2015 Jason Pepas.
+ * Released under the terms of the MIT license.  See https://opensource.org/licenses/MIT
+ */
+
 #include <stdio.h> // snprintf(), etc.
 #include <stdint.h> // uint64_t, etc.
 #include <string.h> // strlen(), etc.
 
 #define UINT64_MAX_DIGITS 20
 
-int8_t _uint64t_strlen(uint64_t i)
+int8_t uint64t_strlen(uint64_t i)
 {
 	char buf[UINT64_MAX_DIGITS+1];
 	int retval = snprintf(buf, sizeof(buf), "%llu", i);
@@ -15,60 +21,60 @@ int8_t _uint64t_strlen(uint64_t i)
 	return len;
 }
 
-int path(uint64_t chunk_index,
+int chunk_path(
+	uint64_t chunk_index,
 	uint64_t chunks_per_dir,
 	int max_chunk_index,
 	char *out, int out_size)
 {
 	int retval;
 
-	int8_t dir_len = _uint64t_strlen(chunks_per_dir-1);
-	if (dir_len < 1)
+	int8_t dir_strlen = uint64t_strlen(chunks_per_dir-1);
+	if (dir_strlen < 1)
 		return -1;
 
-	int8_t chunk_len = _uint64t_strlen(max_chunk_index);
-	if (chunk_len < 1)
+	int8_t chunk_strlen = uint64t_strlen(max_chunk_index);
+	if (chunk_strlen < 1)
 		return -1;
 
-	if (chunk_len % dir_len > 0) {
-		chunk_len += dir_len - (chunk_len % dir_len);
-	}
+	if (chunk_strlen % dir_strlen > 0)
+		chunk_strlen += dir_strlen - (chunk_strlen % dir_strlen);
 
 	retval = snprintf(out, out_size, "chunks/");
 	if (retval < 0)
 		return -1;
 
-	char *chunk_index_str = out + strlen(out);
+	char *chunk_index_substr = out + strlen(out);
 
 	uint8_t subdir_count;
 	uint8_t subdirs_strlen;
 	if (max_chunk_index >= chunks_per_dir) {
-		uint8_t subdir_count = (chunk_len / dir_len) - 1;
-		uint8_t subdirs_strlen = subdir_count * (dir_len + sizeof('/'));
-		chunk_index_str += subdirs_strlen;
+		subdir_count = (chunk_strlen / dir_strlen) - 1;
+		subdirs_strlen = subdir_count * (dir_strlen + strlen("/"));
+		chunk_index_substr += subdirs_strlen;
 	}
 
 	char fmt_str[8+1];
-	retval = snprintf(fmt_str, sizeof(fmt_str), "%%0.%illu", chunk_len);
+	retval = snprintf(fmt_str, sizeof(fmt_str), "%%0.%illu", chunk_strlen);
 	if (retval < 0)
 		return -1;
 
-	int chunk_index_str_buf_len = out_size - strlen(out);
-	retval = snprintf(chunk_index_str, chunk_index_str_buf_len, fmt_str, chunk_index);
+	int chunk_index_substr_buf_len = out_size - strlen(out);
+	retval = snprintf(chunk_index_substr, chunk_index_substr_buf_len, fmt_str, chunk_index);
 	if (retval < 0)
 		return -1;
 
 	if (max_chunk_index >= chunks_per_dir) {
-		char *d_str = out + strlen("chunks/");
-		char *c_str = chunk_index_str;
+		char *dir_substr = out + strlen(out);
+		char *c_substr = chunk_index_substr;
 		for (int i=0; i < subdir_count; i++) {
-			memcpy(d_str, c_str, dir_len + sizeof('/'));
-			d_str += (dir_len + sizeof('/'));
-			c_str += dir_len;
+			memcpy(dir_substr, c_substr, dir_strlen);
+			dir_substr += dir_strlen;
+			c_substr += dir_strlen;
+			memcpy(dir_substr, "/", 1);
+			dir_substr += 1;
 		}
 	}
-
-	// FIXME left off here.
 
 	return 0;
 }
