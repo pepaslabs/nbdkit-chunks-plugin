@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
 
     for(uint32_t i=0; i<1000000; i++)
     {
-	    chunk_path(123456789, 1000, 999999999, buf, sizeof(buf));
-	}
+        chunk_path(123456789, 1000, 999999999, buf, sizeof(buf));
+    }
 
     return EXIT_SUCCESS;
 }
