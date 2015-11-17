@@ -2,4 +2,4 @@
 
 set -e
 
-rm -f test_subdirs
+rm -f test_subdirs benchmark_subdirs
