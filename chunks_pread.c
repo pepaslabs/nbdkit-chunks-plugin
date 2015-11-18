@@ -78,6 +78,10 @@ int _read_from_chunk_at_index(uint64_t chunk_index, uint64_t offset, uint32_t co
     size_t buff_size = strlen(dev.dir_path) + strlen("/chunks/18446744073709551615") + 1;
     char chunk_path[buff_size];
     int chars_written = snprintf(chunk_path, buff_size, "%s/chunks/%0.20llu", dev.dir_path, chunk_index);
+    if (chars_written == 0)
+    {
+        return -1;
+    }
 
     return _read_from_chunk_at_path(chunk_path, offset, count, dest);
 }

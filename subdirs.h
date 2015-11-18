@@ -9,9 +9,9 @@
 
 #include <stdint.h> // uint64_t, etc.
 
-int chunk_path(
+int chunk_relpath(
 	uint64_t chunk_index,
-	uint64_t chunks_per_dir,
+	uint64_t chunks_per_subdir,
 	int max_chunk_index,
 	char *out, int out_size);
 

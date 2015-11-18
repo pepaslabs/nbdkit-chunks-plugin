@@ -21,15 +21,15 @@ int8_t uint64t_strlen(uint64_t i)
 	return len;
 }
 
-int chunk_path(
+int chunk_relpath(
 	uint64_t chunk_index,
-	uint64_t chunks_per_dir,
+	uint64_t chunks_per_subdir,
 	int max_chunk_index,
 	char *out, int out_size)
 {
 	int retval;
 
-	int8_t dir_strlen = uint64t_strlen(chunks_per_dir-1);
+	int8_t dir_strlen = uint64t_strlen(chunks_per_subdir-1);
 	if (dir_strlen < 1)
 		return -1;
 
@@ -48,7 +48,7 @@ int chunk_path(
 
 	uint8_t subdir_count;
 	uint8_t subdirs_strlen;
-	if (max_chunk_index >= chunks_per_dir) {
+	if (max_chunk_index >= chunks_per_subdir) {
 		subdir_count = (chunk_strlen / dir_strlen) - 1;
 		subdirs_strlen = subdir_count * (dir_strlen + strlen("/"));
 		chunk_index_substr += subdirs_strlen;
@@ -64,7 +64,7 @@ int chunk_path(
 	if (retval < 0)
 		return -1;
 
-	if (max_chunk_index >= chunks_per_dir) {
+	if (max_chunk_index >= chunks_per_subdir) {
 		char *dir_substr = out + strlen(out);
 		char *c_substr = chunk_index_substr;
 		for (int i=0; i < subdir_count; i++) {
