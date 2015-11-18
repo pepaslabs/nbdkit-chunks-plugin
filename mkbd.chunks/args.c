@@ -17,8 +17,9 @@ const char *argp_program_version = "mkbd.chunks 0.1";
 */
 static struct argp_option options[] =
 {
-    { "size", 's', "BYTES", 0, "Size of the block device in bytes (default 8G)." },
-    { "chunk-size", 'c', "BYTES", 0, "Size of each chunk in bytes (default 256k)." },
+    { "size", 's', "BYTES", 0, "Size of the block device in bytes (must be divisible by chunk size) (default 8G)." },
+    { "chunk-size", 'c', "BYTES", 0, "Size of each chunk in bytes (must be a power of 2) (default 256k)." },
+    { "chunks-per-subdir", 'd', "COUNT", 0, "Number of chunks per subdirectory (must be a power of 10, or zero to disable subdirectories) (default 1000)." },
     { 0 } 
 };
 
@@ -38,6 +39,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 
         case 'c':
             args->chunk_size_str = arg;
+            break;
+
+        case 'd':
+            args->chunks_per_subdir_str = arg;
             break;
 
         case ARGP_KEY_ARG:
@@ -95,6 +100,7 @@ void parse_args(int argc, char *argv[])
     // defaults
     args.size_str = "8G";
     args.chunk_size_str = "256k";
+    args.chunks_per_subdir_str = "1000";
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
 }

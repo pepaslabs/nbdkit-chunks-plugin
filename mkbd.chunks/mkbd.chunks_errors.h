@@ -19,16 +19,26 @@ enum {
     ERROR_populate_metadata_from_args_CHUNK_SIZE_UNRECOGNIZED_SUFFIX = -23,
     ERROR_populate_metadata_from_args_CHUNK_SIZE_BAD_in_size = -24,
 
-    ERROR_populate_metadata_file_pwrite_FAILED = -31,
-    ERROR_create_metadata_file_snprintf_FAILED = -32,
-    ERROR_create_metadata_file_open_FAILED = -33,
-    ERROR_create_metadata_file_close_FAILED = -34,
-    ERROR_create_chunks_directory_snprintf_FAILED = -35,
-    ERROR_create_chunks_directory_mkdir_FAILED = -36,
+    ERROR_populate_metadata_from_args_CHUNKS_PER_SUBDIR_OFFSET = -30,
+    ERROR_populate_metadata_from_args_CHUNKS_PER_SUBDIR_NO_LEADING_NUMERIC_CHARS = -31,
+    ERROR_populate_metadata_from_args_CHUNKS_PER_SUBDIR_WOULD_OVERFLOW_UINT64 = -32,
+    ERROR_populate_metadata_from_args_CHUNKS_PER_SUBDIR_UNRECOGNIZED_SUFFIX = -33,
+    ERROR_populate_metadata_from_args_CHUNKS_PER_SUBDIR_BAD_in_size = -34,
 
-    ERROR_create_directory_if_needed_mkdir_FAILED = -41,
-    ERROR_create_directory_if_needed_stat_FAILED = -42,
-    ERROR_create_directory_if_needed_stat_EXISTS_BUT_NOT_DIR = -43
+    ERROR_populate_metadata_from_args_INVALID_SIZE = -41,
+    ERROR_populate_metadata_from_args_INVALID_CHUNK_SIZE = -42,
+    ERROR_populate_metadata_from_args_INVALID_CHUNKS_PER_SUBDIR = -43,
+
+    ERROR_populate_metadata_file_pwrite_FAILED = -51,
+    ERROR_create_metadata_file_snprintf_FAILED = -52,
+    ERROR_create_metadata_file_open_FAILED = -53,
+    ERROR_create_metadata_file_close_FAILED = -54,
+    ERROR_create_chunks_directory_snprintf_FAILED = -55,
+    ERROR_create_chunks_directory_mkdir_FAILED = -56,
+
+    ERROR_create_directory_if_needed_mkdir_FAILED = -61,
+    ERROR_create_directory_if_needed_stat_FAILED = -62,
+    ERROR_create_directory_if_needed_stat_EXISTS_BUT_NOT_DIR = -63
 };
 
 #define RETURN_SUCCESS (0)

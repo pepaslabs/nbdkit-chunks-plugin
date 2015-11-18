@@ -10,7 +10,6 @@
 
 #include "args.h"
 #include "args_t.h"
-#include "metadata_t.h"
 #include "metadata.h"
 #include "mkbd.chunks_errors.h"
 #include "parsing.h"
@@ -22,19 +21,37 @@ int populate_metadata_from_args()
 {
     int ok;
 
-    metadata_init_v0(&metadata);
+    metadata_v0_init(&metadata);
 
     uint64_t size;
     ok = parse_size_str(args.size_str, strlen(args.size_str)+1, &size);
     if (ok < 0) return ok + ERROR_populate_metadata_from_args_SIZE_OFFSET;
-
     metadata.v1.dev_size = size;
 
     uint64_t chunk_size;
     ok = parse_size_str(args.chunk_size_str, strlen(args.chunk_size_str)+1, &chunk_size);
     if (ok < 0) return ok + ERROR_populate_metadata_from_args_CHUNK_SIZE_OFFSET;
-
     metadata.v1.chunk_size = chunk_size;
+
+    uint64_t chunks_per_subdir;
+    ok = parse_size_str(args.chunks_per_subdir_str, strlen(args.chunks_per_subdir_str)+1, &chunks_per_subdir);
+    if (ok < 0) return ok + ERROR_populate_metadata_from_args_CHUNKS_PER_SUBDIR_OFFSET;
+    metadata.v1.chunks_per_subdir = chunks_per_subdir;
+
+    if (!metadata_dev_size_is_sane(&metadata))
+    {
+        return ERROR_populate_metadata_from_args_INVALID_SIZE;
+    }
+
+    if (!metadata_chunk_size_is_sane(&metadata))
+    {
+        return ERROR_populate_metadata_from_args_INVALID_CHUNK_SIZE;
+    }
+
+    if (!metadata_chunks_per_subdir_is_sane(&metadata))
+    {
+        return ERROR_populate_metadata_from_args_INVALID_CHUNKS_PER_SUBDIR;
+    }
 
     return RETURN_SUCCESS;
 }
@@ -67,6 +84,13 @@ int populate_metadata_file(int fd)
     
     bytes_written = pwrite(fd, (void*)(&metadata.v1.chunk_size), sizeof(metadata.v1.chunk_size), offset);
     if (bytes_written != sizeof(metadata.v1.chunk_size))
+    {
+        return ERROR_populate_metadata_file_pwrite_FAILED;
+    }
+    offset += bytes_written;
+
+    bytes_written = pwrite(fd, (void*)(&metadata.v1.chunks_per_subdir), sizeof(metadata.v1.chunks_per_subdir), offset);
+    if (bytes_written != sizeof(metadata.v1.chunks_per_subdir))
     {
         return ERROR_populate_metadata_file_pwrite_FAILED;
     }
@@ -195,9 +219,18 @@ int main(int argc, char *argv[])
     }
 
     printf("Creating chunked block device:\n");
-    printf("directory: %s\n", args.directory);
-    printf("size: %llu bytes\n", metadata.v1.dev_size);
-    printf("chunk_size: %llu bytes\n", metadata.v1.chunk_size);
+    printf("  directory: %s\n", args.directory);
+    printf("  size: %llu bytes\n", metadata.v1.dev_size);
+    printf("  chunk_size: %llu bytes\n", metadata.v1.chunk_size);
+
+    if (metadata.v1.chunks_per_subdir)
+    {
+        printf("  chunks_per_subdir: %llu\n", metadata.v1.chunks_per_subdir);
+    }
+    else
+    {
+        printf("  chunks_per_subdir: 0 (subdirectories disabled)\n");
+    }
 
     ok = create_directory_if_needed();
     if (ok < 0)

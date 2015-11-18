@@ -42,6 +42,9 @@ struct _metadata_v1_t
 
     // size of each chunk in bytes.  must be a power of 2.
     uint64_t chunk_size;
+
+    // number of chunks per subdirectory.  must be a power of 10, or zero to disable subdirectores.
+    uint64_t chunks_per_subdir;
 };
 typedef struct _metadata_v1_t metadata_v1_t;
 

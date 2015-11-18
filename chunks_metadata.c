@@ -7,6 +7,7 @@
 #include "chunks_metadata.h"
 #include "chunks_math.h"
 #include "chunks_dev_t.h"
+#include "metadata.h"
 
 #include <string.h> // strlen(), etc.
 #include <stdio.h> // snprintf(), etc.
@@ -14,17 +15,6 @@
 #include <unistd.h> // pread(), etc.
 
 #include <nbdkit-plugin.h> // nbdkit_error(), etc.
-
-
-bool _metadata_dev_size_is_sane(metadata_t *metadata)
-{
-    return is_divisible_by(metadata->v1.dev_size, metadata->v1.chunk_size);
-}
-
-bool _metadata_chunk_size_is_sane(metadata_t *metadata)
-{
-    return is_power_of_two(metadata->v1.chunk_size);
-}
 
 void _calculate_chunk_shift(metadata_t *metadata, chunks_dev_t *dev)
 {
@@ -87,15 +77,29 @@ int _read_metadata_from_open_file(int fd, char *filepath, metadata_t *metadata)
     }
     offset += bytes_read;
 
-    if (!_metadata_dev_size_is_sane(metadata))
+    bytes_read = pread(fd, &(metadata->v1.chunks_per_subdir), sizeof(metadata->v1.chunks_per_subdir), offset);
+    if (bytes_read != sizeof(metadata->v1.chunks_per_subdir))
+    {
+        nbdkit_error("Unable to pread chunks_per_subdir in '%s': %m", filepath);
+        return -1;
+    }
+    offset += bytes_read;
+
+    if (!metadata_dev_size_is_sane(metadata))
     {
         nbdkit_error("Invalid dev_size in '%s'", filepath);
         return -1;
     }
 
-    if (!_metadata_chunk_size_is_sane(metadata))
+    if (!metadata_chunk_size_is_sane(metadata))
     {
         nbdkit_error("Invalid chunk_size in '%s'", filepath);
+        return -1;
+    }
+
+    if (!metadata_chunks_per_subdir_is_sane(metadata))
+    {
+        nbdkit_error("Invalid chunks_per_subdir in '%s'", filepath);
         return -1;
     }
 

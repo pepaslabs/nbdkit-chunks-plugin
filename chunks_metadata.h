@@ -10,8 +10,6 @@
 #include "chunks_dev_t.h"
 #include "metadata_t.h"
 
-#include <stdbool.h> // bool
-
 #define CHUNKS_METADATA_MIN_SUPPORTED_VERSION 1
 #define CHUNKS_METADATA_MAX_SUPPORTED_VERSION 1
 

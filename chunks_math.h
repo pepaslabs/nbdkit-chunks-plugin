@@ -12,5 +12,6 @@
 
 bool is_divisible_by(uint64_t x, uint64_t y);
 bool is_power_of_two(uint64_t x);
+bool is_power_of_ten(uint64_t x);
 
 #endif // CHUNKS_MATH_H
