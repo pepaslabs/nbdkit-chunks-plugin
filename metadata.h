@@ -1,3 +1,9 @@
+/* metadata.h
+ * See https://github.com/pepaslabs/nbdkit-chunks-plugin
+ * Copyright (C) 2015 Jason Pepas.
+ * Released under the terms of the MIT license.  See https://opensource.org/licenses/MIT
+ */
+
 #ifndef METADATA_H
 #define METADATA_H
 

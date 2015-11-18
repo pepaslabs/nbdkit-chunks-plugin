@@ -1,14 +1,8 @@
-/*
-#include <stdlib.h> // EXIT_FAILURE, etc.
-#include <stdio.h> // printf(), etc.
-#include <stdbool.h> // bool, etc.
-#include <limits.h> // INT_MAX, etc.
-
-#include "args.h"
-#include "args_t.h"
-#include "metadata_t.h"
-#include "mkbd.chunks_errors.h"
-*/
+/* parsing.c
+ * See https://github.com/pepaslabs/nbdkit-chunks-plugin
+ * Copyright (C) 2015 Jason Pepas.
+ * Released under the terms of the MIT license.  See https://opensource.org/licenses/MIT
+ */
 
 #include "parsing.h"
 #include "mkbd.chunks_errors.h"

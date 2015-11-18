@@ -1,3 +1,9 @@
+/* mkbd.chunks.c
+ * See https://github.com/pepaslabs/nbdkit-chunks-plugin
+ * Copyright (C) 2015 Jason Pepas.
+ * Released under the terms of the MIT license.  See https://opensource.org/licenses/MIT
+ */
+
 #include <stdlib.h> // EXIT_FAILURE, etc.
 #include <stdio.h> // printf(), etc.
 #include <string.h> // strlen(), etc.
