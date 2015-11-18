@@ -28,5 +28,14 @@ int main(int argc, char *argv[])
     printf("block device size: %i bytes\n", metadata.v1.dev_size);
     printf("chunk size: %i bytes\n", metadata.v1.chunk_size);
 
+    if (metadata.v1.chunks_per_subdir)
+    {
+        printf("chunks per subdirectory: %llu\n", metadata.v1.chunks_per_subdir);
+    }
+    else
+    {
+        printf("chunks per subdirectory: 0 (subdirectories disabled)\n");
+    }
+
 	return EXIT_SUCCESS;
 }

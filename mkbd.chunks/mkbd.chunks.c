@@ -225,17 +225,17 @@ int main(int argc, char *argv[])
     }
 
     printf("Creating chunked block device:\n");
-    printf("  directory: %s\n", args.directory);
-    printf("  size: %llu bytes\n", metadata.v1.dev_size);
-    printf("  chunk_size: %llu bytes\n", metadata.v1.chunk_size);
+    printf("directory: %s\n", args.directory);
+    printf("block device size: %llu bytes\n", metadata.v1.dev_size);
+    printf("chunk size: %llu bytes\n", metadata.v1.chunk_size);
 
     if (metadata.v1.chunks_per_subdir)
     {
-        printf("  chunks_per_subdir: %llu\n", metadata.v1.chunks_per_subdir);
+        printf("chunks per subdirectory: %llu\n", metadata.v1.chunks_per_subdir);
     }
     else
     {
-        printf("  chunks_per_subdir: 0 (subdirectories disabled)\n");
+        printf("chunks per subdirectory: 0 (subdirectories disabled)\n");
     }
 
     ok = create_directory_if_needed();

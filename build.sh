@@ -17,3 +17,11 @@ gcc -shared -O2 -fPIC -DPIC \
 -Wl,nbdkit-${name}-plugin.so \
 -o nbdkit-${name}-plugin.so \
 *.o
+
+cd mkbd.chunks
+./build.sh
+cd - >/dev/null
+
+cd lsbd.chunks
+./build.sh
+cd - >/dev/null
